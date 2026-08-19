@@ -10,6 +10,7 @@ public final class JsonCompareBuilder {
   private boolean ignoreArrayOrder;
   private final Set<String> ignoredPaths = new HashSet<>();
   private boolean treatNullAndMissingAsEqual;
+  private Double numericTolerance;
 
   JsonCompareBuilder() {}
 
@@ -28,12 +29,22 @@ public final class JsonCompareBuilder {
     return this;
   }
 
+  public JsonCompareBuilder numericTolerance(double tolerance) {
+    if (tolerance < 0) {
+      throw new IllegalArgumentException("Numeric tolerance cannot be negative");
+    }
+
+    this.numericTolerance = tolerance;
+    return this;
+  }
+
   public ComparisonResult compare(String expected, String actual) {
     return build().compare(expected, actual);
   }
 
   public JsonComparator build() {
     return new JsonComparator(
-        new ComparisonOptions(ignoreArrayOrder, ignoredPaths, treatNullAndMissingAsEqual));
+        new ComparisonOptions(
+            ignoreArrayOrder, ignoredPaths, treatNullAndMissingAsEqual, numericTolerance));
   }
 }
