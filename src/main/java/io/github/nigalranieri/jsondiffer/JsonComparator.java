@@ -5,6 +5,7 @@ import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
 import io.github.nigalranieri.jsondiffer.internal.comparison.ComparisonEngine;
 import io.github.nigalranieri.jsondiffer.internal.parser.JacksonJsonParser;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
+import java.nio.file.Path;
 
 public final class JsonComparator {
 
@@ -18,6 +19,15 @@ public final class JsonComparator {
 
   public ComparisonResult compare(String expected, String actual) {
 
+    JsonNode expectedNode = parser.parse(expected);
+    JsonNode actualNode = parser.parse(actual);
+
+    ComparisonEngine engine = new ComparisonEngine(options);
+
+    return engine.compare(expectedNode, actualNode);
+  }
+
+  public ComparisonResult compare(Path expected, Path actual) {
     JsonNode expectedNode = parser.parse(expected);
     JsonNode actualNode = parser.parse(actual);
 

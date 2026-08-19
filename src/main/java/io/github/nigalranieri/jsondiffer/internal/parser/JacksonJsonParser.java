@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.nigalranieri.jsondiffer.exception.InvalidJsonException;
+import io.github.nigalranieri.jsondiffer.exception.JsonReadException;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public final class JacksonJsonParser {
 
@@ -15,9 +18,31 @@ public final class JacksonJsonParser {
 
   public JsonNode parse(String json) {
     try {
-      return objectMapper.readTree(json);
+      JsonNode node = objectMapper.readTree(json);
+
+      if (node == null || node.isMissingNode()) {
+        throw new InvalidJsonException("JSON content cannot be empty");
+      }
+
+      return node;
     } catch (JsonProcessingException e) {
       throw new InvalidJsonException("Invalid JSON", e);
+    }
+  }
+
+  public JsonNode parse(Path path) {
+    try {
+      JsonNode node = objectMapper.readTree(path.toFile());
+
+      if (node == null || node.isMissingNode()) {
+        throw new InvalidJsonException("JSON content cannot be empty: " + path);
+      }
+
+      return node;
+    } catch (JsonProcessingException e) {
+      throw new InvalidJsonException("Invalid JSON: " + path, e);
+    } catch (IOException e) {
+      throw new JsonReadException("Unable to read JSON file: " + path, e);
     }
   }
 }
