@@ -193,45 +193,15 @@ public final class JsonCompare {
       List<Difference> differences,
       ComparisonOptions options) {
 
-    boolean[] matched = new boolean[actual.size()];
+    boolean[] expectedMatched = new boolean[expected.size()];
+    boolean[] actualMatched = new boolean[actual.size()];
 
-    for (int i = 0; i < expected.size(); i++) {
-      JsonNode expectedElement = expected.get(i);
+    matchExactElements(expected, actual, expectedMatched, actualMatched, options);
 
-      boolean foundMatch = false;
+    matchSimilarElements(
+        path, expected, actual, expectedMatched, actualMatched, differences, options);
 
-      for (int j = 0; j < actual.size(); j++) {
-        if (matched[j]) {
-          continue;
-        }
-
-        if (nodesAreEqual(expectedElement, actual.get(j), options)) {
-          matched[j] = true;
-          foundMatch = true;
-          break;
-        }
-      }
-
-      if (!foundMatch) {
-        differences.add(
-            new Difference(
-                path + "[" + i + "]",
-                DifferenceType.MISSING_ELEMENT,
-                DifferenceValue.of(toJavaValue(expectedElement)),
-                DifferenceValue.missing()));
-      }
-    }
-
-    for (int j = 0; j < actual.size(); j++) {
-      if (!matched[j]) {
-        differences.add(
-            new Difference(
-                path + "[" + j + "]",
-                DifferenceType.UNEXPECTED_ELEMENT,
-                DifferenceValue.missing(),
-                DifferenceValue.of(toJavaValue(actual.get(j)))));
-      }
-    }
+    addUnmatchedElements(path, expected, actual, expectedMatched, actualMatched, differences);
   }
 
   private static boolean nodesAreEqual(
@@ -242,5 +212,146 @@ public final class JsonCompare {
     compareNodes("$", expected, actual, differences, options);
 
     return differences.isEmpty();
+  }
+
+  private static void matchExactElements(
+      JsonNode expected,
+      JsonNode actual,
+      boolean[] expectedMatched,
+      boolean[] actualMatched,
+      ComparisonOptions options) {
+
+    for (int i = 0; i < expected.size(); i++) {
+      for (int j = 0; j < actual.size(); j++) {
+
+        if (actualMatched[j]) {
+          continue;
+        }
+
+        if (nodesAreEqual(expected.get(i), actual.get(j), options)) {
+          expectedMatched[i] = true;
+          actualMatched[j] = true;
+          break;
+        }
+      }
+    }
+  }
+
+  private static void matchSimilarElements(
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      boolean[] expectedMatched,
+      boolean[] actualMatched,
+      List<Difference> differences,
+      ComparisonOptions options) {
+
+    for (int i = 0; i < expected.size(); i++) {
+
+      if (expectedMatched[i]) {
+        continue;
+      }
+
+      MatchCandidate bestMatch =
+          findBestMatch(path + "[" + i + "]", expected.get(i), actual, actualMatched, options);
+
+      if (bestMatch == null) {
+        continue;
+      }
+
+      expectedMatched[i] = true;
+      actualMatched[bestMatch.getActualIndex()] = true;
+
+      differences.addAll(bestMatch.getDifferences());
+    }
+  }
+
+  private static MatchCandidate findBestMatch(
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      boolean[] actualMatched,
+      ComparisonOptions options) {
+
+    MatchCandidate bestMatch = null;
+
+    for (int j = 0; j < actual.size(); j++) {
+
+      if (actualMatched[j]) {
+        continue;
+      }
+
+      JsonNode actualElement = actual.get(j);
+
+      if (!areStructurallyCompatible(expected, actualElement)) {
+        continue;
+      }
+
+      List<Difference> candidateDifferences = new ArrayList<>();
+
+      compareNodes(path, expected, actualElement, candidateDifferences, options);
+
+      if (bestMatch == null || candidateDifferences.size() < bestMatch.getDifferences().size()) {
+
+        bestMatch = new MatchCandidate(j, candidateDifferences);
+      }
+    }
+
+    return bestMatch;
+  }
+
+  private static boolean areStructurallyCompatible(JsonNode expected, JsonNode actual) {
+
+    return (expected.isObject() && actual.isObject()) || (expected.isArray() && actual.isArray());
+  }
+
+  private static void addUnmatchedElements(
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      boolean[] expectedMatched,
+      boolean[] actualMatched,
+      List<Difference> differences) {
+
+    for (int i = 0; i < expected.size(); i++) {
+      if (!expectedMatched[i]) {
+        differences.add(
+            new Difference(
+                path + "[" + i + "]",
+                DifferenceType.MISSING_ELEMENT,
+                DifferenceValue.of(toJavaValue(expected.get(i))),
+                DifferenceValue.missing()));
+      }
+    }
+
+    for (int j = 0; j < actual.size(); j++) {
+      if (!actualMatched[j]) {
+        differences.add(
+            new Difference(
+                path + "[" + j + "]",
+                DifferenceType.UNEXPECTED_ELEMENT,
+                DifferenceValue.missing(),
+                DifferenceValue.of(toJavaValue(actual.get(j)))));
+      }
+    }
+  }
+
+  private static final class MatchCandidate {
+
+    private final int actualIndex;
+    private final List<Difference> differences;
+
+    private MatchCandidate(int actualIndex, List<Difference> differences) {
+      this.actualIndex = actualIndex;
+      this.differences = differences;
+    }
+
+    int getActualIndex() {
+      return actualIndex;
+    }
+
+    List<Difference> getDifferences() {
+      return differences;
+    }
   }
 }
