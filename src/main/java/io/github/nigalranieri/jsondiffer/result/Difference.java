@@ -4,10 +4,11 @@ public final class Difference {
 
   private final String path;
   private final DifferenceType type;
-  private final Object expected;
-  private final Object actual;
+  private final DifferenceValue expected;
+  private final DifferenceValue actual;
 
-  public Difference(String path, DifferenceType type, Object expected, Object actual) {
+  public Difference(
+      String path, DifferenceType type, DifferenceValue expected, DifferenceValue actual) {
     this.path = path;
     this.type = type;
     this.expected = expected;
@@ -22,11 +23,11 @@ public final class Difference {
     return type;
   }
 
-  public Object getExpected() {
+  public DifferenceValue getExpected() {
     return expected;
   }
 
-  public Object getActual() {
+  public DifferenceValue getActual() {
     return actual;
   }
 }
