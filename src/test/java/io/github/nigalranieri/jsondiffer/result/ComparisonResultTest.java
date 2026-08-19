@@ -3,6 +3,7 @@ package io.github.nigalranieri.jsondiffer.result;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -48,5 +49,125 @@ class ComparisonResultTest {
     ComparisonResult result = new ComparisonResult(Collections.<Difference>emptyList());
 
     assertThrows(UnsupportedOperationException.class, () -> result.getDifferences().add(null));
+  }
+
+  @Test
+  void shouldFormatEqualResult() {
+    ComparisonResult result = new ComparisonResult(Collections.<Difference>emptyList());
+
+    assertEquals("JSON is equal", result.toString());
+  }
+
+  @Test
+  void shouldFormatDifferencesInTraversalOrder() {
+    Difference first =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference second =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    Difference third =
+        new Difference(
+            "$.active",
+            DifferenceType.UNEXPECTED_FIELD,
+            DifferenceValue.missing(),
+            DifferenceValue.of(DifferenceValueType.BOOLEAN, true));
+
+    ComparisonResult result = new ComparisonResult(Arrays.asList(first, second, third));
+
+    String expected =
+        "JSON differs (3 differences):"
+            + System.lineSeparator()
+            + "- VALUE_MISMATCH at $.name: expected=\"Alice\", actual=\"Bob\""
+            + System.lineSeparator()
+            + "- MISSING_FIELD at $.age: expected=30, actual=<missing>"
+            + System.lineSeparator()
+            + "- UNEXPECTED_FIELD at $.active: expected=<missing>, actual=true";
+
+    assertEquals(expected, result.toString());
+  }
+
+  @Test
+  void shouldFormatDifferencesGroupedByType() {
+    Difference first =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference second =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    Difference third =
+        new Difference(
+            "$.city",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Rome"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Milan"));
+
+    Difference fourth =
+        new Difference(
+            "$.active",
+            DifferenceType.UNEXPECTED_FIELD,
+            DifferenceValue.missing(),
+            DifferenceValue.of(DifferenceValueType.BOOLEAN, true));
+
+    ComparisonResult result = new ComparisonResult(Arrays.asList(first, second, third, fourth));
+
+    String expected =
+        "JSON differs (4 differences):"
+            + System.lineSeparator()
+            + System.lineSeparator()
+            + "VALUE_MISMATCH (2):"
+            + System.lineSeparator()
+            + "- $.name: expected=\"Alice\", actual=\"Bob\""
+            + System.lineSeparator()
+            + "- $.city: expected=\"Rome\", actual=\"Milan\""
+            + System.lineSeparator()
+            + System.lineSeparator()
+            + "MISSING_FIELD (1):"
+            + System.lineSeparator()
+            + "- $.age: expected=30, actual=<missing>"
+            + System.lineSeparator()
+            + System.lineSeparator()
+            + "UNEXPECTED_FIELD (1):"
+            + System.lineSeparator()
+            + "- $.active: expected=<missing>, actual=true";
+
+    assertEquals(expected, result.format(ComparisonResultFormat.GROUPED));
+  }
+
+  @Test
+  void shouldFormatEqualResultWhenGrouped() {
+    ComparisonResult result = new ComparisonResult(Collections.<Difference>emptyList());
+
+    assertEquals("JSON is equal", result.format(ComparisonResultFormat.GROUPED));
+  }
+
+  @Test
+  void shouldUseTraversalFormatByDefault() {
+    Difference difference =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(difference));
+
+    assertEquals(result.format(ComparisonResultFormat.TRAVERSAL), result.toString());
   }
 }

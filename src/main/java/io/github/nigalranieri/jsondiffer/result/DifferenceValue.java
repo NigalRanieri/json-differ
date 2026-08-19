@@ -91,4 +91,86 @@ public final class DifferenceValue {
   public int hashCode() {
     return Objects.hash(type, value);
   }
+
+  @Override
+  public String toString() {
+    if (isMissing()) {
+      return "<missing>";
+    }
+
+    if (isNull()) {
+      return "null";
+    }
+
+    return formatValue(value);
+  }
+
+  private static String formatValue(Object value) {
+    if (value == null) {
+      return "null";
+    }
+
+    if (value instanceof String) {
+      return "\"" + escape((String) value) + "\"";
+    }
+
+    if (value instanceof Number || value instanceof Boolean) {
+      return String.valueOf(value);
+    }
+
+    if (value instanceof Map) {
+      return formatObject((Map<?, ?>) value);
+    }
+
+    if (value instanceof List) {
+      return formatArray((List<?>) value);
+    }
+
+    return String.valueOf(value);
+  }
+
+  private static String formatArray(List<?> values) {
+    StringBuilder builder = new StringBuilder("[");
+
+    for (int i = 0; i < values.size(); i++) {
+      if (i > 0) {
+        builder.append(",");
+      }
+
+      builder.append(formatValue(values.get(i)));
+    }
+
+    return builder.append("]").toString();
+  }
+
+  private static String formatObject(Map<?, ?> values) {
+    StringBuilder builder = new StringBuilder("{");
+
+    boolean first = true;
+
+    for (Map.Entry<?, ?> entry : values.entrySet()) {
+      if (!first) {
+        builder.append(",");
+      }
+
+      first = false;
+
+      builder
+          .append("\"")
+          .append(escape(String.valueOf(entry.getKey())))
+          .append("\":")
+          .append(formatValue(entry.getValue()));
+    }
+
+    return builder.append("}").toString();
+  }
+
+  private static String escape(String value) {
+    return value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t");
+  }
 }

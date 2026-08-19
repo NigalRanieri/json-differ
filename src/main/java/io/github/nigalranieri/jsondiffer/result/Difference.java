@@ -55,4 +55,9 @@ public final class Difference {
   public int hashCode() {
     return Objects.hash(path, type, expected, actual);
   }
+
+  @Override
+  public String toString() {
+    return type + " at " + path + ": expected=" + expected + ", actual=" + actual;
+  }
 }
