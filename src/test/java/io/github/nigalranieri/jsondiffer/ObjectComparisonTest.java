@@ -86,4 +86,63 @@ class ObjectComparisonTest {
     assertFalse(difference.getExpected().isMissing());
     assertTrue(difference.getActual().isMissing());
   }
+
+  @Test
+  void shouldTreatNullAndMissingAsDifferentByDefault() {
+    String expected = "{\"name\":\"Alice\",\"age\":null}";
+    String actual = "{\"name\":\"Alice\"}";
+
+    ComparisonResult result = JsonCompare.compare(expected, actual);
+
+    assertFalse(result.isEqual());
+    assertEquals(1, result.getDifferences().size());
+    assertEquals(DifferenceType.MISSING_FIELD, result.getDifferences().get(0).getType());
+  }
+
+  @Test
+  void shouldTreatNullAndMissingAsEqualWhenConfigured() {
+    String expected = "{\"name\":\"Alice\",\"age\":null}";
+    String actual = "{\"name\":\"Alice\"}";
+
+    ComparisonResult result =
+        JsonCompare.builder().treatNullAndMissingAsEqual().compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldTreatMissingAndNullAsEqualWhenConfigured() {
+    String expected = "{\"name\":\"Alice\"}";
+    String actual = "{\"name\":\"Alice\",\"age\":null}";
+
+    ComparisonResult result =
+        JsonCompare.builder().treatNullAndMissingAsEqual().compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldStillReportMissingNonNullField() {
+    String expected = "{\"name\":\"Alice\",\"age\":30}";
+    String actual = "{\"name\":\"Alice\"}";
+
+    ComparisonResult result =
+        JsonCompare.builder().treatNullAndMissingAsEqual().compare(expected, actual);
+
+    assertFalse(result.isEqual());
+    assertEquals(1, result.getDifferences().size());
+    assertEquals(DifferenceType.MISSING_FIELD, result.getDifferences().get(0).getType());
+  }
+
+  @Test
+  void shouldTreatNestedNullAndMissingAsEqualWhenConfigured() {
+    String expected = "{\"user\":{\"name\":\"Alice\",\"metadata\":{\"timestamp\":null}}}";
+
+    String actual = "{\"user\":{\"name\":\"Alice\",\"metadata\":{}}}";
+
+    ComparisonResult result =
+        JsonCompare.builder().treatNullAndMissingAsEqual().compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
 }

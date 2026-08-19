@@ -10,11 +10,18 @@ public final class ComparisonOptions {
   private final boolean ignoreArrayOrder;
   private final Set<String> ignoredPaths;
   private final PathMatcher pathMatcher;
+  private final boolean treatNullAndMissingAsEqual;
 
-  public ComparisonOptions(boolean ignoreArrayOrder, Set<String> ignoredPaths) {
+  public ComparisonOptions(
+      boolean ignoreArrayOrder, Set<String> ignoredPaths, boolean treatNullAndMissingAsEqual) {
     this.ignoreArrayOrder = ignoreArrayOrder;
     this.ignoredPaths = Collections.unmodifiableSet(new HashSet<>(ignoredPaths));
     this.pathMatcher = new PathMatcher();
+    this.treatNullAndMissingAsEqual = treatNullAndMissingAsEqual;
+  }
+
+  public boolean isTreatNullAndMissingAsEqual() {
+    return treatNullAndMissingAsEqual;
   }
 
   public boolean isIgnoreArrayOrder() {

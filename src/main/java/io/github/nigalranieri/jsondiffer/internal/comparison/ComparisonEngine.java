@@ -92,6 +92,10 @@ public final class ComparisonEngine {
       }
 
       if (!actual.has(fieldName)) {
+        if (options.isTreatNullAndMissingAsEqual() && field.getValue().isNull()) {
+          continue;
+        }
+
         differences.add(
             new Difference(
                 fieldPath,
@@ -116,6 +120,10 @@ public final class ComparisonEngine {
       }
 
       if (!expected.has(fieldName)) {
+        if (options.isTreatNullAndMissingAsEqual() && field.getValue().isNull()) {
+          continue;
+        }
+
         differences.add(
             new Difference(
                 fieldPath,

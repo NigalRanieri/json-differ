@@ -9,6 +9,7 @@ public final class JsonCompareBuilder {
 
   private boolean ignoreArrayOrder;
   private final Set<String> ignoredPaths = new HashSet<>();
+  private boolean treatNullAndMissingAsEqual;
 
   JsonCompareBuilder() {}
 
@@ -22,11 +23,17 @@ public final class JsonCompareBuilder {
     return this;
   }
 
+  public JsonCompareBuilder treatNullAndMissingAsEqual() {
+    this.treatNullAndMissingAsEqual = true;
+    return this;
+  }
+
   public ComparisonResult compare(String expected, String actual) {
     return build().compare(expected, actual);
   }
 
   public JsonComparator build() {
-    return new JsonComparator(new ComparisonOptions(ignoreArrayOrder, ignoredPaths));
+    return new JsonComparator(
+        new ComparisonOptions(ignoreArrayOrder, ignoredPaths, treatNullAndMissingAsEqual));
   }
 }
