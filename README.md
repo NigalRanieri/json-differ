@@ -238,7 +238,7 @@ A built comparator keeps the configuration it was created with and is unaffected
 
 ## Path Syntax
 
-Configuration methods such as `ignorePath(...)` and path-specific `ignoreArrayOrder(...)` use JSON paths starting from `$`, the document root.
+Configuration methods such as `ignorePath(...)` and path-specific `ignoreArrayOrder(...)` use path expressions starting from `$`, the document root.
 
 | Syntax | Meaning | Example |
 | --- | --- | --- |
@@ -279,7 +279,7 @@ Without additional configuration:
 - Array length and duplicate elements are significant.
 - JSON `null` and a missing field are different.
 - Numbers are compared exactly.
-- JSON value types must match.
+- Values of different JSON types are not considered equal.
 - No paths are ignored.
 
 For example, object property order does not affect equality:
@@ -477,6 +477,8 @@ Long paths and values are wrapped across multiple table lines rather than trunca
 JSON files can be compared directly using `Path`:
 
 ```java
+import io.github.nigalranieri.jsondiffer.JsonCompare;
+import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -505,7 +507,6 @@ Malformed JSON is reported with `InvalidJsonException`. Failures while reading a
 ## Requirements
 
 - Java 8 or later
-- Maven or another Java dependency management/build tool
 
 Jackson is used internally for JSON parsing but is not exposed through the public comparison or result APIs.
 
