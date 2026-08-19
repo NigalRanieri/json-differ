@@ -27,4 +27,25 @@ class PathMatcherTest {
   void shouldNotMatchDifferentPath() {
     assertFalse(matcher.matches("$.users[*].timestamp", "$.users[0].name"));
   }
+
+  @Test
+  void shouldMatchRecursiveWildcardAtRoot() {
+    assertTrue(matcher.matches("$.**.timestamp", "$.timestamp"));
+  }
+
+  @Test
+  void shouldMatchRecursiveWildcardAtAnyDepth() {
+    assertTrue(matcher.matches("$.**.timestamp", "$.metadata.timestamp"));
+    assertTrue(matcher.matches("$.**.timestamp", "$.users[0].metadata.timestamp"));
+  }
+
+  @Test
+  void shouldNotMatchRecursiveWildcardWhenSuffixDiffers() {
+    assertFalse(matcher.matches("$.**.timestamp", "$.metadata.createdAt"));
+  }
+
+  @Test
+  void shouldNotMatchPastTheConfiguredSuffix() {
+    assertFalse(matcher.matches("$.**.timestamp", "$.timestamp.value"));
+  }
 }

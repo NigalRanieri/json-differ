@@ -6,28 +6,48 @@ public final class PathMatcher {
     String[] patternTokens = tokenize(pattern);
     String[] pathTokens = tokenize(path);
 
-    if (patternTokens.length != pathTokens.length) {
+    return matches(patternTokens, 0, pathTokens, 0);
+  }
+
+  private boolean matches(
+      String[] patternTokens, int patternIndex, String[] pathTokens, int pathIndex) {
+
+    if (patternIndex == patternTokens.length) {
+      return pathIndex == pathTokens.length;
+    }
+
+    String patternToken = patternTokens[patternIndex];
+
+    if ("**".equals(patternToken)) {
+      // ** matches zero tokens
+      if (matches(patternTokens, patternIndex + 1, pathTokens, pathIndex)) {
+        return true;
+      }
+
+      // ** matches one or more tokens
+      return pathIndex < pathTokens.length
+          && matches(patternTokens, patternIndex, pathTokens, pathIndex + 1);
+    }
+
+    if (pathIndex >= pathTokens.length) {
       return false;
     }
 
-    for (int i = 0; i < patternTokens.length; i++) {
-      String patternToken = patternTokens[i];
-      String pathToken = pathTokens[i];
+    String pathToken = pathTokens[pathIndex];
 
-      if ("*".equals(patternToken)) {
-        continue;
-      }
-
-      if ("[*]".equals(patternToken) && isArrayIndex(pathToken)) {
-        continue;
-      }
-
-      if (!patternToken.equals(pathToken)) {
-        return false;
-      }
+    if ("*".equals(patternToken)) {
+      return matches(patternTokens, patternIndex + 1, pathTokens, pathIndex + 1);
     }
 
-    return true;
+    if ("[*]".equals(patternToken) && isArrayIndex(pathToken)) {
+      return matches(patternTokens, patternIndex + 1, pathTokens, pathIndex + 1);
+    }
+
+    if (!patternToken.equals(pathToken)) {
+      return false;
+    }
+
+    return matches(patternTokens, patternIndex + 1, pathTokens, pathIndex + 1);
   }
 
   private String[] tokenize(String path) {
