@@ -156,6 +156,11 @@ public final class JsonCompare {
       List<Difference> differences,
       ComparisonOptions options) {
 
+    if (options.isIgnoreArrayOrder()) {
+      compareUnorderedArrays(path, expected, actual, differences, options);
+      return;
+    }
+
     int commonSize = Math.min(expected.size(), actual.size());
 
     for (int i = 0; i < commonSize; i++) {
@@ -179,5 +184,63 @@ public final class JsonCompare {
               DifferenceValue.missing(),
               DifferenceValue.of(toJavaValue(actual.get(i)))));
     }
+  }
+
+  private static void compareUnorderedArrays(
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      List<Difference> differences,
+      ComparisonOptions options) {
+
+    boolean[] matched = new boolean[actual.size()];
+
+    for (int i = 0; i < expected.size(); i++) {
+      JsonNode expectedElement = expected.get(i);
+
+      boolean foundMatch = false;
+
+      for (int j = 0; j < actual.size(); j++) {
+        if (matched[j]) {
+          continue;
+        }
+
+        if (nodesAreEqual(expectedElement, actual.get(j), options)) {
+          matched[j] = true;
+          foundMatch = true;
+          break;
+        }
+      }
+
+      if (!foundMatch) {
+        differences.add(
+            new Difference(
+                path + "[" + i + "]",
+                DifferenceType.MISSING_ELEMENT,
+                DifferenceValue.of(toJavaValue(expectedElement)),
+                DifferenceValue.missing()));
+      }
+    }
+
+    for (int j = 0; j < actual.size(); j++) {
+      if (!matched[j]) {
+        differences.add(
+            new Difference(
+                path + "[" + j + "]",
+                DifferenceType.UNEXPECTED_ELEMENT,
+                DifferenceValue.missing(),
+                DifferenceValue.of(toJavaValue(actual.get(j)))));
+      }
+    }
+  }
+
+  private static boolean nodesAreEqual(
+      JsonNode expected, JsonNode actual, ComparisonOptions options) {
+
+    List<Difference> differences = new ArrayList<>();
+
+    compareNodes("$", expected, actual, differences, options);
+
+    return differences.isEmpty();
   }
 }
