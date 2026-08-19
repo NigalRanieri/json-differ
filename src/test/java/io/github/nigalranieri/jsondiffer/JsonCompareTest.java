@@ -44,4 +44,61 @@ class JsonCompareTest {
     assertTrue(first.isEqual());
     assertFalse(second.isEqual());
   }
+
+  @Test
+  void shouldRejectNullExpectedJson() {
+    assertThrows(NullPointerException.class, () -> JsonCompare.compare((String) null, "{}"));
+  }
+
+  @Test
+  void shouldRejectNullActualJson() {
+    assertThrows(NullPointerException.class, () -> JsonCompare.compare("{}", (String) null));
+  }
+
+  @Test
+  void shouldRejectWhitespaceOnlyJson() {
+    assertThrows(InvalidJsonException.class, () -> JsonCompare.compare("   \n\t", "{}"));
+  }
+
+  @Test
+  void shouldRejectNaNNumericTolerance() {
+    assertThrows(
+        IllegalArgumentException.class, () -> JsonCompare.builder().numericTolerance(Double.NaN));
+  }
+
+  @Test
+  void shouldRejectInfiniteNumericTolerance() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> JsonCompare.builder().numericTolerance(Double.POSITIVE_INFINITY));
+  }
+
+  @Test
+  void shouldAllowZeroNumericTolerance() {
+    ComparisonResult result =
+        JsonCompare.builder().numericTolerance(0).compare("{\"value\":1}", "{\"value\":1}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldRejectNullIgnoredPath() {
+    assertThrows(NullPointerException.class, () -> JsonCompare.builder().ignorePath(null));
+  }
+
+  @Test
+  void shouldRejectBlankIgnoredPath() {
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.builder().ignorePath("   "));
+  }
+
+  @Test
+  void shouldRejectNullUnorderedArrayPath() {
+    assertThrows(NullPointerException.class, () -> JsonCompare.builder().ignoreArrayOrder(null));
+  }
+
+  @Test
+  void shouldRejectBlankUnorderedArrayPath() {
+    assertThrows(
+        IllegalArgumentException.class, () -> JsonCompare.builder().ignoreArrayOrder("   "));
+  }
 }

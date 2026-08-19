@@ -7,6 +7,7 @@ import io.github.nigalranieri.jsondiffer.exception.InvalidJsonException;
 import io.github.nigalranieri.jsondiffer.exception.JsonReadException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public final class JacksonJsonParser {
 
@@ -17,6 +18,7 @@ public final class JacksonJsonParser {
   }
 
   public JsonNode parse(String json) {
+    Objects.requireNonNull(json, "json");
     try {
       JsonNode node = objectMapper.readTree(json);
 
@@ -31,6 +33,7 @@ public final class JacksonJsonParser {
   }
 
   public JsonNode parse(Path path) {
+    Objects.requireNonNull(path, "path");
     try {
       JsonNode node = objectMapper.readTree(path.toFile());
 

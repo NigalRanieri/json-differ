@@ -1,6 +1,7 @@
 package io.github.nigalranieri.jsondiffer;
 
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
+import io.github.nigalranieri.jsondiffer.internal.path.PathValidator;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ public final class JsonCompareBuilder {
   JsonCompareBuilder() {}
 
   public JsonCompareBuilder ignorePath(String path) {
+    PathValidator.validate(path);
     ignoredPaths.add(path);
     return this;
   }
@@ -27,6 +29,7 @@ public final class JsonCompareBuilder {
   }
 
   public JsonCompareBuilder ignoreArrayOrder(String path) {
+    PathValidator.validate(path);
     unorderedArrayPaths.add(path);
     return this;
   }
@@ -37,6 +40,10 @@ public final class JsonCompareBuilder {
   }
 
   public JsonCompareBuilder numericTolerance(double tolerance) {
+    if (Double.isNaN(tolerance) || Double.isInfinite(tolerance)) {
+      throw new IllegalArgumentException("Numeric tolerance must be finite");
+    }
+
     if (tolerance < 0) {
       throw new IllegalArgumentException("Numeric tolerance cannot be negative");
     }
