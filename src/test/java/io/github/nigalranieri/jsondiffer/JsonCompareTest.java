@@ -196,4 +196,45 @@ class JsonCompareTest {
     assertTrue(first.isEqual());
     assertFalse(second.isEqual());
   }
+
+  @Test
+  void shouldIgnoreArrayOrderWhenConfigured() {
+    String expected = "{\"values\":[1,2,3]}";
+    String actual = "{\"values\":[3,1,2]}";
+
+    ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldRespectArrayOrderByDefault() {
+    String expected = "{\"values\":[1,2,3]}";
+    String actual = "{\"values\":[3,1,2]}";
+
+    ComparisonResult result = JsonCompare.compare(expected, actual);
+
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void shouldRespectDuplicateElementsWhenIgnoringArrayOrder() {
+    String expected = "{\"values\":[1,1,2]}";
+    String actual = "{\"values\":[1,2,2]}";
+
+    ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
+
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreObjectOrderInsideUnorderedArray() {
+    String expected = "{\"users\":[{\"id\":1,\"name\":\"Alice\"},{\"id\":2,\"name\":\"Bob\"}]}";
+
+    String actual = "{\"users\":[{\"id\":2,\"name\":\"Bob\"},{\"name\":\"Alice\",\"id\":1}]}";
+
+    ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
 }
