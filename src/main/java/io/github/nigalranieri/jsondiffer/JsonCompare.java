@@ -46,6 +46,11 @@ public final class JsonCompare {
       return;
     }
 
+    if (expected.isArray() && actual.isArray()) {
+      compareArrays(path, expected, actual, differences);
+      return;
+    }
+
     differences.add(
         new Difference(
             path,
@@ -123,6 +128,34 @@ public final class JsonCompare {
                 DifferenceValue.missing(),
                 DifferenceValue.of(toJavaValue(field.getValue()))));
       }
+    }
+  }
+
+  private static void compareArrays(
+      String path, JsonNode expected, JsonNode actual, List<Difference> differences) {
+
+    int commonSize = Math.min(expected.size(), actual.size());
+
+    for (int i = 0; i < commonSize; i++) {
+      compareNodes(path + "[" + i + "]", expected.get(i), actual.get(i), differences);
+    }
+
+    for (int i = commonSize; i < expected.size(); i++) {
+      differences.add(
+          new Difference(
+              path + "[" + i + "]",
+              DifferenceType.MISSING_ELEMENT,
+              DifferenceValue.of(toJavaValue(expected.get(i))),
+              DifferenceValue.missing()));
+    }
+
+    for (int i = commonSize; i < actual.size(); i++) {
+      differences.add(
+          new Difference(
+              path + "[" + i + "]",
+              DifferenceType.UNEXPECTED_ELEMENT,
+              DifferenceValue.missing(),
+              DifferenceValue.of(toJavaValue(actual.get(i)))));
     }
   }
 }
