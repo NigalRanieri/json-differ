@@ -7,6 +7,7 @@ import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import io.github.nigalranieri.jsondiffer.result.Difference;
 import io.github.nigalranieri.jsondiffer.result.DifferenceType;
 import io.github.nigalranieri.jsondiffer.result.DifferenceValueType;
+import io.github.nigalranieri.jsondiffer.support.JsonTestResource;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -54,8 +55,9 @@ class UnorderedArrayComparisonTest {
 
   @Test
   void shouldReportNestedDifferenceForSimilarObjectsInUnorderedArray() {
-    String expected = "{\"users\":[{\"id\":1,\"name\":\"Alice\"}]}";
-    String actual = "{\"users\":[{\"id\":1,\"name\":\"Alicia\"}]}";
+    String expected = JsonTestResource.load("json/unordered/users-similar-expected.json");
+
+    String actual = JsonTestResource.load("json/unordered/users-similar-actual.json");
 
     ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
 
@@ -69,9 +71,9 @@ class UnorderedArrayComparisonTest {
 
   @Test
   void shouldPreferExactMatchesInUnorderedArray() {
-    String expected = "{\"users\":[{\"id\":1,\"name\":\"Alice\"},{\"id\":2,\"name\":\"Bob\"}]}";
+    String expected = JsonTestResource.load("json/unordered/users-exact-preferred-expected.json");
 
-    String actual = "{\"users\":[{\"id\":2,\"name\":\"Robert\"},{\"id\":1,\"name\":\"Alice\"}]}";
+    String actual = JsonTestResource.load("json/unordered/users-exact-preferred-actual.json");
 
     ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
 
@@ -132,5 +134,31 @@ class UnorderedArrayComparisonTest {
     assertEquals(DifferenceValueType.ARRAY, difference.getExpected().getType());
     assertTrue(difference.getExpected().getValue() instanceof List);
     assertFalse(difference.getExpected().getValue() instanceof JsonNode);
+  }
+
+  @Test
+  void shouldIgnoreOrderInNestedArrays() {
+    String expected = "{\"groups\":[[1,2,3],[4,5,6]]}";
+
+    String actual = "{\"groups\":[[6,5,4],[3,2,1]]}";
+
+    ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreOrderOnlyForNestedArrayAtConfiguredPath() {
+    String expected = "{\"groups\":[{\"values\":[1,2,3]}],\"scores\":[1,2,3]}";
+
+    String actual = "{\"groups\":[{\"values\":[3,2,1]}],\"scores\":[3,2,1]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignoreArrayOrder("$.groups[*].values").compare(expected, actual);
+
+    assertFalse(result.isEqual());
+    assertEquals(2, result.getDifferences().size());
+    assertEquals("$.scores[0]", result.getDifferences().get(0).getPath());
+    assertEquals("$.scores[2]", result.getDifferences().get(1).getPath());
   }
 }
