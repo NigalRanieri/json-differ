@@ -87,11 +87,20 @@ class ComparisonResultTest {
     String expected =
         "JSON differs (3 differences):"
             + System.lineSeparator()
-            + "- VALUE_MISMATCH at $.name: expected=\"Alice\", actual=\"Bob\""
             + System.lineSeparator()
-            + "- MISSING_FIELD at $.age: expected=30, actual=<missing>"
+            + "+----------+------------------+-----------+-----------+"
             + System.lineSeparator()
-            + "- UNEXPECTED_FIELD at $.active: expected=<missing>, actual=true";
+            + "| PATH     | TYPE             | EXPECTED  | ACTUAL    |"
+            + System.lineSeparator()
+            + "+----------+------------------+-----------+-----------+"
+            + System.lineSeparator()
+            + "| $.name   | VALUE_MISMATCH   | \"Alice\"   | \"Bob\"     |"
+            + System.lineSeparator()
+            + "| $.age    | MISSING_FIELD    | 30        | <missing> |"
+            + System.lineSeparator()
+            + "| $.active | UNEXPECTED_FIELD | <missing> | true      |"
+            + System.lineSeparator()
+            + "+----------+------------------+-----------+-----------+";
 
     assertEquals(expected, result.toString());
   }
@@ -132,21 +141,21 @@ class ComparisonResultTest {
         "JSON differs (4 differences):"
             + System.lineSeparator()
             + System.lineSeparator()
-            + "VALUE_MISMATCH (2):"
+            + "+------------------+----------+-----------+-----------+"
             + System.lineSeparator()
-            + "- $.name: expected=\"Alice\", actual=\"Bob\""
+            + "| TYPE             | PATH     | EXPECTED  | ACTUAL    |"
             + System.lineSeparator()
-            + "- $.city: expected=\"Rome\", actual=\"Milan\""
+            + "+------------------+----------+-----------+-----------+"
             + System.lineSeparator()
+            + "| VALUE_MISMATCH   | $.name   | \"Alice\"   | \"Bob\"     |"
             + System.lineSeparator()
-            + "MISSING_FIELD (1):"
+            + "| VALUE_MISMATCH   | $.city   | \"Rome\"    | \"Milan\"   |"
             + System.lineSeparator()
-            + "- $.age: expected=30, actual=<missing>"
+            + "| MISSING_FIELD    | $.age    | 30        | <missing> |"
             + System.lineSeparator()
+            + "| UNEXPECTED_FIELD | $.active | <missing> | true      |"
             + System.lineSeparator()
-            + "UNEXPECTED_FIELD (1):"
-            + System.lineSeparator()
-            + "- $.active: expected=<missing>, actual=true";
+            + "+------------------+----------+-----------+-----------+";
 
     assertEquals(expected, result.format(ComparisonResultFormat.GROUPED));
   }
@@ -215,11 +224,20 @@ class ComparisonResultTest {
     String expectedOutput =
         "JSON differs (3 differences):"
             + System.lineSeparator()
-            + "- VALUE_MISMATCH at $.name: expected=\"Alice\", actual=\"Bob\""
             + System.lineSeparator()
-            + "- MISSING_FIELD at $.age: expected=30, actual=<missing>"
+            + "+----------+------------------+-----------+-----------+"
             + System.lineSeparator()
-            + "- UNEXPECTED_FIELD at $.active: expected=<missing>, actual=true";
+            + "| PATH     | TYPE             | EXPECTED  | ACTUAL    |"
+            + System.lineSeparator()
+            + "+----------+------------------+-----------+-----------+"
+            + System.lineSeparator()
+            + "| $.name   | VALUE_MISMATCH   | \"Alice\"   | \"Bob\"     |"
+            + System.lineSeparator()
+            + "| $.age    | MISSING_FIELD    | 30        | <missing> |"
+            + System.lineSeparator()
+            + "| $.active | UNEXPECTED_FIELD | <missing> | true      |"
+            + System.lineSeparator()
+            + "+----------+------------------+-----------+-----------+";
 
     assertEquals(expectedOutput, result.toString());
   }

@@ -1,10 +1,12 @@
 package io.github.nigalranieri.jsondiffer.result;
 
+import io.github.nigalranieri.jsondiffer.internal.format.TableFormatter;
 import java.util.*;
 
 public final class ComparisonResult {
 
   private final List<Difference> differences;
+  private static final int MAX_CELL_WIDTH = 40;
 
   public ComparisonResult(List<Difference> differences) {
     Objects.requireNonNull(differences, "differences");
@@ -64,17 +66,27 @@ public final class ComparisonResult {
   }
 
   private String formatTraversal() {
-    StringBuilder builder =
-        new StringBuilder()
-            .append("JSON differs (")
-            .append(differences.size())
-            .append(" differences):");
+    List<String> headers = Arrays.asList("PATH", "TYPE", "EXPECTED", "ACTUAL");
+
+    List<List<String>> rows = new ArrayList<>();
 
     for (Difference difference : differences) {
-      builder.append(System.lineSeparator()).append("- ").append(difference);
+      rows.add(
+          Arrays.asList(
+              difference.getPath(),
+              difference.getType().toString(),
+              difference.getExpected().toString(),
+              difference.getActual().toString()));
     }
 
-    return builder.toString();
+    return formatSummary()
+        + System.lineSeparator()
+        + System.lineSeparator()
+        + TableFormatter.format(headers, rows, MAX_CELL_WIDTH);
+  }
+
+  private String formatSummary() {
+    return "JSON differs (" + differences.size() + " differences):";
   }
 
   private String formatGrouped() {
@@ -91,33 +103,24 @@ public final class ComparisonResult {
       group.add(difference);
     }
 
-    StringBuilder builder =
-        new StringBuilder()
-            .append("JSON differs (")
-            .append(differences.size())
-            .append(" differences):");
+    List<String> headers = Arrays.asList("TYPE", "PATH", "EXPECTED", "ACTUAL");
+
+    List<List<String>> rows = new ArrayList<>();
 
     for (Map.Entry<DifferenceType, List<Difference>> entry : grouped.entrySet()) {
-      builder
-          .append(System.lineSeparator())
-          .append(System.lineSeparator())
-          .append(entry.getKey())
-          .append(" (")
-          .append(entry.getValue().size())
-          .append("):");
-
       for (Difference difference : entry.getValue()) {
-        builder
-            .append(System.lineSeparator())
-            .append("- ")
-            .append(difference.getPath())
-            .append(": expected=")
-            .append(difference.getExpected())
-            .append(", actual=")
-            .append(difference.getActual());
+        rows.add(
+            Arrays.asList(
+                difference.getType().toString(),
+                difference.getPath(),
+                difference.getExpected().toString(),
+                difference.getActual().toString()));
       }
     }
 
-    return builder.toString();
+    return formatSummary()
+        + System.lineSeparator()
+        + System.lineSeparator()
+        + TableFormatter.format(headers, rows, MAX_CELL_WIDTH);
   }
 }
