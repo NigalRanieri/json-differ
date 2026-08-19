@@ -146,7 +146,7 @@ public final class ComparisonEngine {
   private void compareArrays(
       String path, JsonNode expected, JsonNode actual, List<Difference> differences) {
 
-    if (options.isIgnoreArrayOrder()) {
+    if (options.shouldIgnoreArrayOrder(path)) {
       compareUnorderedArrays(path, expected, actual, differences);
       return;
     }
