@@ -79,4 +79,44 @@ class UnorderedArrayComparisonTest {
     assertEquals("Bob", difference.getExpected().getValue());
     assertEquals("Robert", difference.getActual().getValue());
   }
+
+  @Test
+  void shouldIgnoreArrayOrderOnlyAtConfiguredPath() {
+    String expected = "{\"users\":[1,2,3],\"scores\":[1,2,3]}";
+
+    String actual = "{\"users\":[3,2,1],\"scores\":[3,2,1]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignoreArrayOrder("$.users").compare(expected, actual);
+
+    assertFalse(result.isEqual());
+    assertEquals(2, result.getDifferences().size());
+
+    assertEquals("$.scores[0]", result.getDifferences().get(0).getPath());
+    assertEquals("$.scores[2]", result.getDifferences().get(1).getPath());
+  }
+
+  @Test
+  void shouldIgnoreArrayOrderAtConfiguredPath() {
+    String expected = "{\"users\":[1,2,3],\"scores\":[1,2,3]}";
+
+    String actual = "{\"users\":[3,2,1],\"scores\":[1,2,3]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignoreArrayOrder("$.users").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreArrayOrderUsingPathWildcard() {
+    String expected = "{\"groups\":[" + "{\"users\":[1,2,3]}," + "{\"users\":[4,5,6]}" + "]}";
+
+    String actual = "{\"groups\":[" + "{\"users\":[3,2,1]}," + "{\"users\":[6,5,4]}" + "]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignoreArrayOrder("$.groups[*].users").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
 }

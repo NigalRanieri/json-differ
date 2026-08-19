@@ -12,17 +12,20 @@ public final class ComparisonOptions {
   private final PathMatcher pathMatcher;
   private final boolean treatNullAndMissingAsEqual;
   private final Double numericTolerance;
+  private final Set<String> unorderedArrayPaths;
 
   public ComparisonOptions(
       boolean ignoreArrayOrder,
       Set<String> ignoredPaths,
       boolean treatNullAndMissingAsEqual,
-      Double numericTolerance) {
+      Double numericTolerance,
+      Set<String> unorderedArrayPaths) {
     this.ignoreArrayOrder = ignoreArrayOrder;
     this.ignoredPaths = Collections.unmodifiableSet(new HashSet<>(ignoredPaths));
     this.pathMatcher = new PathMatcher();
     this.treatNullAndMissingAsEqual = treatNullAndMissingAsEqual;
     this.numericTolerance = numericTolerance;
+    this.unorderedArrayPaths = Collections.unmodifiableSet(new HashSet<>(unorderedArrayPaths));
   }
 
   public boolean hasNumericTolerance() {
@@ -39,6 +42,20 @@ public final class ComparisonOptions {
 
   public boolean isIgnoreArrayOrder() {
     return ignoreArrayOrder;
+  }
+
+  public boolean shouldIgnoreArrayOrder(String path) {
+    if (ignoreArrayOrder) {
+      return true;
+    }
+
+    for (String unorderedArrayPath : unorderedArrayPaths) {
+      if (pathMatcher.matches(unorderedArrayPath, path)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public boolean isIgnoredPath(String path) {

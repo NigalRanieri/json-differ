@@ -11,6 +11,7 @@ public final class JsonCompareBuilder {
   private final Set<String> ignoredPaths = new HashSet<>();
   private boolean treatNullAndMissingAsEqual;
   private Double numericTolerance;
+  private final Set<String> unorderedArrayPaths = new HashSet<>();
 
   JsonCompareBuilder() {}
 
@@ -21,6 +22,11 @@ public final class JsonCompareBuilder {
 
   public JsonCompareBuilder ignoreArrayOrder() {
     this.ignoreArrayOrder = true;
+    return this;
+  }
+
+  public JsonCompareBuilder ignoreArrayOrder(String path) {
+    unorderedArrayPaths.add(path);
     return this;
   }
 
@@ -45,6 +51,10 @@ public final class JsonCompareBuilder {
   public JsonComparator build() {
     return new JsonComparator(
         new ComparisonOptions(
-            ignoreArrayOrder, ignoredPaths, treatNullAndMissingAsEqual, numericTolerance));
+            ignoreArrayOrder,
+            ignoredPaths,
+            treatNullAndMissingAsEqual,
+            numericTolerance,
+            unorderedArrayPaths));
   }
 }
