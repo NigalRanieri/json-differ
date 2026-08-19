@@ -141,18 +141,30 @@ public final class ComparisonEngine {
     }
 
     for (int i = commonSize; i < expected.size(); i++) {
+      String elementPath = path + "[" + i + "]";
+
+      if (options.isIgnoredPath(elementPath)) {
+        continue;
+      }
+
       differences.add(
           new Difference(
-              path + "[" + i + "]",
+              elementPath,
               DifferenceType.MISSING_ELEMENT,
               DifferenceValue.of(toJavaValue(expected.get(i))),
               DifferenceValue.missing()));
     }
 
     for (int i = commonSize; i < actual.size(); i++) {
+      String elementPath = path + "[" + i + "]";
+
+      if (options.isIgnoredPath(elementPath)) {
+        continue;
+      }
+
       differences.add(
           new Difference(
-              path + "[" + i + "]",
+              elementPath,
               DifferenceType.UNEXPECTED_ELEMENT,
               DifferenceValue.missing(),
               DifferenceValue.of(toJavaValue(actual.get(i)))));
@@ -263,7 +275,7 @@ public final class ComparisonEngine {
     return (expected.isObject() && actual.isObject()) || (expected.isArray() && actual.isArray());
   }
 
-  private static void addUnmatchedElements(
+  private void addUnmatchedElements(
       String path,
       JsonNode expected,
       JsonNode actual,
@@ -273,9 +285,15 @@ public final class ComparisonEngine {
 
     for (int i = 0; i < expected.size(); i++) {
       if (!expectedMatched[i]) {
+        String elementPath = path + "[" + i + "]";
+
+        if (options.isIgnoredPath(elementPath)) {
+          continue;
+        }
+
         differences.add(
             new Difference(
-                path + "[" + i + "]",
+                elementPath,
                 DifferenceType.MISSING_ELEMENT,
                 DifferenceValue.of(toJavaValue(expected.get(i))),
                 DifferenceValue.missing()));
@@ -284,9 +302,15 @@ public final class ComparisonEngine {
 
     for (int j = 0; j < actual.size(); j++) {
       if (!actualMatched[j]) {
+        String elementPath = path + "[" + j + "]";
+
+        if (options.isIgnoredPath(elementPath)) {
+          continue;
+        }
+
         differences.add(
             new Difference(
-                path + "[" + j + "]",
+                elementPath,
                 DifferenceType.UNEXPECTED_ELEMENT,
                 DifferenceValue.missing(),
                 DifferenceValue.of(toJavaValue(actual.get(j)))));
