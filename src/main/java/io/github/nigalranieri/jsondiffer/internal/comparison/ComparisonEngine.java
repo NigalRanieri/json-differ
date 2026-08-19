@@ -31,6 +31,10 @@ public final class ComparisonEngine {
   private void compareNodes(
       String path, JsonNode expected, JsonNode actual, List<Difference> differences) {
 
+    if (options.isIgnoredPath(path)) {
+      return;
+    }
+
     if (expected.equals(actual)) {
       return;
     }
@@ -83,6 +87,10 @@ public final class ComparisonEngine {
       String fieldName = field.getKey();
       String fieldPath = path + "." + fieldName;
 
+      if (options.isIgnoredPath(fieldPath)) {
+        continue;
+      }
+
       if (!actual.has(fieldName)) {
         differences.add(
             new Difference(
@@ -101,11 +109,16 @@ public final class ComparisonEngine {
     while (actualFields.hasNext()) {
       Map.Entry<String, JsonNode> field = actualFields.next();
       String fieldName = field.getKey();
+      String fieldPath = path + "." + fieldName;
+
+      if (options.isIgnoredPath(fieldPath)) {
+        continue;
+      }
 
       if (!expected.has(fieldName)) {
         differences.add(
             new Difference(
-                path + "." + fieldName,
+                fieldPath,
                 DifferenceType.UNEXPECTED_FIELD,
                 DifferenceValue.missing(),
                 DifferenceValue.of(toJavaValue(field.getValue()))));
