@@ -4,10 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.nigalranieri.jsondiffer.result.DifferenceValue;
 import io.github.nigalranieri.jsondiffer.result.DifferenceValueType;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class DifferenceValueTest {
@@ -97,5 +94,55 @@ class DifferenceValueTest {
     assertThrows(
         UnsupportedOperationException.class,
         () -> ((Map<Object, Object>) nestedUser).put("age", 30));
+  }
+
+  @Test
+  void shouldFormatMissingValue() {
+    assertEquals("<missing>", DifferenceValue.missing().toString());
+  }
+
+  @Test
+  void shouldFormatNullValue() {
+    assertEquals("null", DifferenceValue.ofNull().toString());
+  }
+
+  @Test
+  void shouldFormatStringValue() {
+    DifferenceValue value = DifferenceValue.of(DifferenceValueType.STRING, "Alice");
+
+    assertEquals("\"Alice\"", value.toString());
+  }
+
+  @Test
+  void shouldFormatNumberValue() {
+    DifferenceValue value = DifferenceValue.of(DifferenceValueType.NUMBER, 42);
+
+    assertEquals("42", value.toString());
+  }
+
+  @Test
+  void shouldFormatBooleanValue() {
+    DifferenceValue value = DifferenceValue.of(DifferenceValueType.BOOLEAN, true);
+
+    assertEquals("true", value.toString());
+  }
+
+  @Test
+  void shouldFormatObjectValue() {
+    Map<String, Object> object = new LinkedHashMap<>();
+    object.put("name", "Alice");
+    object.put("age", 30);
+
+    DifferenceValue value = DifferenceValue.of(DifferenceValueType.OBJECT, object);
+
+    assertEquals("{\"name\":\"Alice\",\"age\":30}", value.toString());
+  }
+
+  @Test
+  void shouldFormatArrayValue() {
+    DifferenceValue value =
+        DifferenceValue.of(DifferenceValueType.ARRAY, Arrays.asList(1, "Alice", true, null));
+
+    assertEquals("[1,\"Alice\",true,null]", value.toString());
   }
 }

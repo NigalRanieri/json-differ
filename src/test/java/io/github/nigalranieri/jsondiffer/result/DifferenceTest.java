@@ -56,4 +56,29 @@ class DifferenceTest {
                 DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
                 DifferenceValue.of(DifferenceValueType.STRING, "Bob")));
   }
+
+  @Test
+  void shouldFormatValueMismatch() {
+    Difference difference =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    assertEquals(
+        "VALUE_MISMATCH at $.name: expected=\"Alice\", actual=\"Bob\"", difference.toString());
+  }
+
+  @Test
+  void shouldFormatMissingField() {
+    Difference difference =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    assertEquals("MISSING_FIELD at $.age: expected=30, actual=<missing>", difference.toString());
+  }
 }

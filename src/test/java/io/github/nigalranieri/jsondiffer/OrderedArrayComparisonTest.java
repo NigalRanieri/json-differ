@@ -2,9 +2,7 @@ package io.github.nigalranieri.jsondiffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
-import io.github.nigalranieri.jsondiffer.result.Difference;
-import io.github.nigalranieri.jsondiffer.result.DifferenceType;
+import io.github.nigalranieri.jsondiffer.result.*;
 import org.junit.jupiter.api.Test;
 
 class OrderedArrayComparisonTest {

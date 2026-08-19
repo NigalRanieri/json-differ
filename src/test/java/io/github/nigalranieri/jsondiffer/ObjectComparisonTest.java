@@ -3,10 +3,7 @@ package io.github.nigalranieri.jsondiffer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
-import io.github.nigalranieri.jsondiffer.result.Difference;
-import io.github.nigalranieri.jsondiffer.result.DifferenceType;
-import io.github.nigalranieri.jsondiffer.result.DifferenceValueType;
+import io.github.nigalranieri.jsondiffer.result.*;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
