@@ -237,4 +237,44 @@ class JsonCompareTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void shouldReportNestedDifferenceForSimilarObjectsInUnorderedArray() {
+    String expected = "{\"users\":[{\"id\":1,\"name\":\"Alice\"}]}";
+
+    String actual = "{\"users\":[{\"id\":1,\"name\":\"Alicia\"}]}";
+
+    ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
+
+    assertFalse(result.isEqual());
+    assertEquals(1, result.getDifferences().size());
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals("$.users[0].name", difference.getPath());
+    assertEquals(DifferenceType.VALUE_MISMATCH, difference.getType());
+    assertEquals("Alice", difference.getExpected().getValue());
+    assertEquals("Alicia", difference.getActual().getValue());
+  }
+
+  @Test
+  void shouldPreferExactMatchesInUnorderedArray() {
+    String expected =
+        "{\"users\":[" + "{\"id\":1,\"name\":\"Alice\"}," + "{\"id\":2,\"name\":\"Bob\"}" + "]}";
+
+    String actual =
+        "{\"users\":[" + "{\"id\":2,\"name\":\"Robert\"}," + "{\"id\":1,\"name\":\"Alice\"}" + "]}";
+
+    ComparisonResult result = JsonCompare.builder().ignoreArrayOrder().compare(expected, actual);
+
+    assertFalse(result.isEqual());
+    assertEquals(1, result.getDifferences().size());
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals("$.users[1].name", difference.getPath());
+    assertEquals(DifferenceType.VALUE_MISMATCH, difference.getType());
+    assertEquals("Bob", difference.getExpected().getValue());
+    assertEquals("Robert", difference.getActual().getValue());
+  }
 }
