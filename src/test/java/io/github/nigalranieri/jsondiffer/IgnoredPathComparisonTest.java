@@ -106,4 +106,22 @@ public class IgnoredPathComparisonTest {
     assertEquals(1, result.getDifferences().size());
     assertEquals("$.users[0].name", result.getDifferences().get(0).getPath());
   }
+
+  @Test
+  void shouldIgnorePathAtAnyDepthUsingRecursiveWildcard() {
+    String expected =
+        "{\"timestamp\":\"10:00\","
+            + "\"metadata\":{\"timestamp\":\"11:00\"},"
+            + "\"users\":[{\"timestamp\":\"12:00\"}]}";
+
+    String actual =
+        "{\"timestamp\":\"20:00\","
+            + "\"metadata\":{\"timestamp\":\"21:00\"},"
+            + "\"users\":[{\"timestamp\":\"22:00\"}]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.**.timestamp").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
 }
