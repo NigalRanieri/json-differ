@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-01-01T10:00:00Z",
+  "groups": [
+    {
+      "timestamp": "2026-01-02T10:00:00Z",
+      "users": [
+        {
+          "name": "Alice",
+          "timestamp": "2026-01-03T10:00:00Z"
+        }
+      ]
+    }
+  ]
+}
