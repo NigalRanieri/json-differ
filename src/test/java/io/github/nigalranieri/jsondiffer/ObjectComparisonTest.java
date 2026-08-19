@@ -2,9 +2,12 @@ package io.github.nigalranieri.jsondiffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import io.github.nigalranieri.jsondiffer.result.Difference;
 import io.github.nigalranieri.jsondiffer.result.DifferenceType;
+import io.github.nigalranieri.jsondiffer.result.DifferenceValueType;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ObjectComparisonTest {
@@ -144,5 +147,56 @@ class ObjectComparisonTest {
         JsonCompare.builder().treatNullAndMissingAsEqual().compare(expected, actual);
 
     assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldPreserveStringDifferenceType() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":\"Alice\"}", "{\"value\":\"Bob\"}");
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceValueType.STRING, difference.getExpected().getType());
+    assertEquals(DifferenceValueType.STRING, difference.getActual().getType());
+  }
+
+  @Test
+  void shouldPreserveNumberDifferenceType() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":10}", "{\"value\":20}");
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceValueType.NUMBER, difference.getExpected().getType());
+    assertEquals(DifferenceValueType.NUMBER, difference.getActual().getType());
+  }
+
+  @Test
+  void shouldPreserveBooleanDifferenceType() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":true}", "{\"value\":false}");
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceValueType.BOOLEAN, difference.getExpected().getType());
+    assertEquals(DifferenceValueType.BOOLEAN, difference.getActual().getType());
+  }
+
+  @Test
+  void shouldPreserveNullDifferenceType() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":null}", "{\"value\":\"Alice\"}");
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceValueType.NULL, difference.getExpected().getType());
+    assertEquals(DifferenceValueType.STRING, difference.getActual().getType());
+  }
+
+  @Test
+  void shouldPreserveObjectDifferenceTypeWithoutExposingJackson() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":{\"name\":\"Alice\"}}", "{}");
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceValueType.OBJECT, difference.getExpected().getType());
+    assertTrue(difference.getExpected().getValue() instanceof Map);
+    assertFalse(difference.getExpected().getValue() instanceof JsonNode);
   }
 }

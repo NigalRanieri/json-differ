@@ -2,14 +2,8 @@ package io.github.nigalranieri.jsondiffer.internal.comparison;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
-import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
-import io.github.nigalranieri.jsondiffer.result.Difference;
-import io.github.nigalranieri.jsondiffer.result.DifferenceType;
-import io.github.nigalranieri.jsondiffer.result.DifferenceValue;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import io.github.nigalranieri.jsondiffer.result.*;
+import java.util.*;
 
 public final class ComparisonEngine {
 
@@ -62,11 +56,43 @@ public final class ComparisonEngine {
         new Difference(
             path,
             DifferenceType.VALUE_MISMATCH,
-            DifferenceValue.of(toJavaValue(expected)),
-            DifferenceValue.of(toJavaValue(actual))));
+            toDifferenceValue(expected),
+            toDifferenceValue(actual)));
+  }
+
+  private static DifferenceValue toDifferenceValue(JsonNode node) {
+    if (node.isNull()) {
+      return DifferenceValue.ofNull();
+    }
+
+    if (node.isTextual()) {
+      return DifferenceValue.of(DifferenceValueType.STRING, node.textValue());
+    }
+
+    if (node.isNumber()) {
+      return DifferenceValue.of(DifferenceValueType.NUMBER, node.numberValue());
+    }
+
+    if (node.isBoolean()) {
+      return DifferenceValue.of(DifferenceValueType.BOOLEAN, node.booleanValue());
+    }
+
+    if (node.isObject()) {
+      return DifferenceValue.of(DifferenceValueType.OBJECT, toJavaValue(node));
+    }
+
+    if (node.isArray()) {
+      return DifferenceValue.of(DifferenceValueType.ARRAY, toJavaValue(node));
+    }
+
+    throw new IllegalArgumentException("Unsupported JSON node type: " + node.getNodeType());
   }
 
   private static Object toJavaValue(JsonNode node) {
+    if (node.isNull()) {
+      return null;
+    }
+
     if (node.isTextual()) {
       return node.textValue();
     }
@@ -79,11 +105,24 @@ public final class ComparisonEngine {
       return node.booleanValue();
     }
 
-    if (node.isNull()) {
-      return null;
+    if (node.isObject()) {
+      Map<String, Object> object = new LinkedHashMap<>();
+
+      node.fields()
+          .forEachRemaining(field -> object.put(field.getKey(), toJavaValue(field.getValue())));
+
+      return object;
     }
 
-    return node.toString();
+    if (node.isArray()) {
+      List<Object> array = new ArrayList<>();
+
+      node.elements().forEachRemaining(element -> array.add(toJavaValue(element)));
+
+      return array;
+    }
+
+    throw new IllegalArgumentException("Unsupported JSON node type: " + node.getNodeType());
   }
 
   private void compareObjects(
@@ -109,7 +148,7 @@ public final class ComparisonEngine {
             new Difference(
                 fieldPath,
                 DifferenceType.MISSING_FIELD,
-                DifferenceValue.of(toJavaValue(field.getValue())),
+                toDifferenceValue(field.getValue()),
                 DifferenceValue.missing()));
         continue;
       }
@@ -138,7 +177,7 @@ public final class ComparisonEngine {
                 fieldPath,
                 DifferenceType.UNEXPECTED_FIELD,
                 DifferenceValue.missing(),
-                DifferenceValue.of(toJavaValue(field.getValue()))));
+                toDifferenceValue(field.getValue())));
       }
     }
   }
@@ -168,7 +207,7 @@ public final class ComparisonEngine {
           new Difference(
               elementPath,
               DifferenceType.MISSING_ELEMENT,
-              DifferenceValue.of(toJavaValue(expected.get(i))),
+              toDifferenceValue(expected.get(i)),
               DifferenceValue.missing()));
     }
 
@@ -184,7 +223,7 @@ public final class ComparisonEngine {
               elementPath,
               DifferenceType.UNEXPECTED_ELEMENT,
               DifferenceValue.missing(),
-              DifferenceValue.of(toJavaValue(actual.get(i)))));
+              toDifferenceValue(actual.get(i))));
     }
   }
 
@@ -312,7 +351,7 @@ public final class ComparisonEngine {
             new Difference(
                 elementPath,
                 DifferenceType.MISSING_ELEMENT,
-                DifferenceValue.of(toJavaValue(expected.get(i))),
+                toDifferenceValue(expected.get(i)),
                 DifferenceValue.missing()));
       }
     }
@@ -330,7 +369,7 @@ public final class ComparisonEngine {
                 elementPath,
                 DifferenceType.UNEXPECTED_ELEMENT,
                 DifferenceValue.missing(),
-                DifferenceValue.of(toJavaValue(actual.get(j)))));
+                toDifferenceValue(actual.get(j))));
       }
     }
   }
