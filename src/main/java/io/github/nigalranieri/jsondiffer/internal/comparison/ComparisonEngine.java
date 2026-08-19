@@ -39,6 +39,15 @@ public final class ComparisonEngine {
       return;
     }
 
+    if (expected.isNumber() && actual.isNumber() && options.hasNumericTolerance()) {
+
+      double difference = Math.abs(expected.doubleValue() - actual.doubleValue());
+
+      if (difference <= options.getNumericTolerance()) {
+        return;
+      }
+    }
+
     if (expected.isObject() && actual.isObject()) {
       compareObjects(path, expected, actual, differences);
       return;

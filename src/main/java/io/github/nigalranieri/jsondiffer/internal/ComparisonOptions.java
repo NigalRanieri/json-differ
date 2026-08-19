@@ -11,13 +11,26 @@ public final class ComparisonOptions {
   private final Set<String> ignoredPaths;
   private final PathMatcher pathMatcher;
   private final boolean treatNullAndMissingAsEqual;
+  private final Double numericTolerance;
 
   public ComparisonOptions(
-      boolean ignoreArrayOrder, Set<String> ignoredPaths, boolean treatNullAndMissingAsEqual) {
+      boolean ignoreArrayOrder,
+      Set<String> ignoredPaths,
+      boolean treatNullAndMissingAsEqual,
+      Double numericTolerance) {
     this.ignoreArrayOrder = ignoreArrayOrder;
     this.ignoredPaths = Collections.unmodifiableSet(new HashSet<>(ignoredPaths));
     this.pathMatcher = new PathMatcher();
     this.treatNullAndMissingAsEqual = treatNullAndMissingAsEqual;
+    this.numericTolerance = numericTolerance;
+  }
+
+  public boolean hasNumericTolerance() {
+    return numericTolerance != null;
+  }
+
+  public double getNumericTolerance() {
+    return numericTolerance;
   }
 
   public boolean isTreatNullAndMissingAsEqual() {

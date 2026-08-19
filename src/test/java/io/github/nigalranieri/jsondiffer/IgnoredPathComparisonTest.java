@@ -7,7 +7,7 @@ import io.github.nigalranieri.jsondiffer.result.Difference;
 import io.github.nigalranieri.jsondiffer.result.DifferenceType;
 import org.junit.jupiter.api.Test;
 
-public class IgnoredPathComparisonTest {
+class IgnoredPathComparisonTest {
   @Test
   void shouldIgnoreDifferenceAtConfiguredPath() {
     String expected = "{\"name\":\"Alice\",\"timestamp\":\"10:00\"}";
