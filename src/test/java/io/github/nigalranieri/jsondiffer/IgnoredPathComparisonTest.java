@@ -124,4 +124,73 @@ public class IgnoredPathComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void shouldIgnoreExactArrayIndex() {
+    String expected = "{\"values\":[1,2,3]}";
+    String actual = "{\"values\":[1,9,3]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.values[1]").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreAllArrayElementsUsingWildcard() {
+    String expected = "{\"values\":[1,2,3]}";
+    String actual = "{\"values\":[9,8,7]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.values[*]").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreMissingArrayElementAtConfiguredPath() {
+    String expected = "{\"values\":[1,2,3]}";
+    String actual = "{\"values\":[1,2]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.values[2]").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreUnexpectedArrayElementAtConfiguredPath() {
+    String expected = "{\"values\":[1,2]}";
+    String actual = "{\"values\":[1,2,3]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.values[2]").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreMissingArrayElementUsingWildcard() {
+    String expected = "{\"values\":[1,2,3]}";
+    String actual = "{\"values\":[1,2]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.values[*]").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreUnmatchedElementsUsingWildcardInUnorderedArray() {
+    String expected = "{\"values\":[1,2,3]}";
+    String actual = "{\"values\":[9]}";
+
+    ComparisonResult result =
+            JsonCompare.builder()
+                    .ignoreArrayOrder()
+                    .ignorePath("$.values[*]")
+                    .compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
 }
