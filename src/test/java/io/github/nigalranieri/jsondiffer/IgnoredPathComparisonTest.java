@@ -186,10 +186,10 @@ public class IgnoredPathComparisonTest {
     String actual = "{\"values\":[9]}";
 
     ComparisonResult result =
-            JsonCompare.builder()
-                    .ignoreArrayOrder()
-                    .ignorePath("$.values[*]")
-                    .compare(expected, actual);
+        JsonCompare.builder()
+            .ignoreArrayOrder()
+            .ignorePath("$.values[*]")
+            .compare(expected, actual);
 
     assertTrue(result.isEqual());
   }
