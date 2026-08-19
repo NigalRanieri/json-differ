@@ -72,4 +72,11 @@ class FileComparisonTest {
 
     assertThrows(InvalidJsonException.class, () -> JsonCompare.compare(empty, valid));
   }
+
+  @Test
+  void shouldRejectNullExpectedPath() {
+    Path valid = resourcePath("json/identical-actual.json");
+
+    assertThrows(NullPointerException.class, () -> JsonCompare.compare((Path) null, valid));
+  }
 }
