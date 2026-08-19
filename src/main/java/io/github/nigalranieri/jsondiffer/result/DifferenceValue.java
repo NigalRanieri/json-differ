@@ -2,31 +2,39 @@ package io.github.nigalranieri.jsondiffer.result;
 
 public final class DifferenceValue {
 
-  private final boolean missing;
+  private final DifferenceValueType type;
   private final Object value;
 
-  private DifferenceValue(boolean missing, Object value) {
-    this.missing = missing;
+  private DifferenceValue(DifferenceValueType type, Object value) {
+    this.type = type;
     this.value = value;
   }
 
   public static DifferenceValue missing() {
-    return new DifferenceValue(true, null);
+    return new DifferenceValue(DifferenceValueType.MISSING, null);
   }
 
-  public static DifferenceValue of(Object value) {
-    return new DifferenceValue(false, value);
+  public static DifferenceValue ofNull() {
+    return new DifferenceValue(DifferenceValueType.NULL, null);
   }
 
-  public boolean isMissing() {
-    return missing;
+  public static DifferenceValue of(DifferenceValueType type, Object value) {
+    return new DifferenceValue(type, value);
   }
 
-  public boolean isNull() {
-    return !missing && value == null;
+  public DifferenceValueType getType() {
+    return type;
   }
 
   public Object getValue() {
     return value;
+  }
+
+  public boolean isMissing() {
+    return type == DifferenceValueType.MISSING;
+  }
+
+  public boolean isNull() {
+    return type == DifferenceValueType.NULL;
   }
 }

@@ -2,9 +2,12 @@ package io.github.nigalranieri.jsondiffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import io.github.nigalranieri.jsondiffer.result.Difference;
 import io.github.nigalranieri.jsondiffer.result.DifferenceType;
+import io.github.nigalranieri.jsondiffer.result.DifferenceValueType;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class UnorderedArrayComparisonTest {
@@ -118,5 +121,16 @@ class UnorderedArrayComparisonTest {
         JsonCompare.builder().ignoreArrayOrder("$.groups[*].users").compare(expected, actual);
 
     assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldPreserveArrayDifferenceTypeWithoutExposingJackson() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":[1,2,3]}", "{}");
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceValueType.ARRAY, difference.getExpected().getType());
+    assertTrue(difference.getExpected().getValue() instanceof List);
+    assertFalse(difference.getExpected().getValue() instanceof JsonNode);
   }
 }
