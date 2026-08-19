@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import io.github.nigalranieri.jsondiffer.result.Difference;
 import io.github.nigalranieri.jsondiffer.result.DifferenceType;
+import io.github.nigalranieri.jsondiffer.support.JsonTestResource;
 import org.junit.jupiter.api.Test;
 
 class IgnoredPathComparisonTest {
@@ -190,6 +191,18 @@ class IgnoredPathComparisonTest {
             .ignoreArrayOrder()
             .ignorePath("$.values[*]")
             .compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldIgnoreRecursiveWildcardThroughArrays() {
+    String expected = JsonTestResource.load("json/ignored-path/recursive-array-expected.json");
+
+    String actual = JsonTestResource.load("json/ignored-path/recursive-array-actual.json");
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.**.timestamp").compare(expected, actual);
 
     assertTrue(result.isEqual());
   }

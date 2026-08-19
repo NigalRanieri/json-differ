@@ -101,4 +101,9 @@ class JsonCompareTest {
     assertThrows(
         IllegalArgumentException.class, () -> JsonCompare.builder().ignoreArrayOrder("   "));
   }
+
+  @Test
+  void shouldRejectEmptyJsonString() {
+    assertThrows(InvalidJsonException.class, () -> JsonCompare.compare("", "{}"));
+  }
 }

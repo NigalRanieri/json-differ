@@ -2,6 +2,7 @@ package io.github.nigalranieri.jsondiffer.result;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.nigalranieri.jsondiffer.JsonCompare;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -190,5 +191,36 @@ class ComparisonResultTest {
     ComparisonResult result = new ComparisonResult(Collections.<Difference>emptyList());
 
     assertThrows(NullPointerException.class, () -> result.format(null));
+  }
+
+  @Test
+  void shouldPreserveTraversalOrderAcrossDifferentDifferenceTypes() {
+    String expected = "{\"name\":\"Alice\",\"age\":30,\"city\":\"Rome\"}";
+
+    String actual = "{\"name\":\"Bob\",\"city\":\"Rome\",\"active\":true}";
+
+    ComparisonResult result = JsonCompare.compare(expected, actual);
+
+    assertEquals(3, result.getDifferences().size());
+
+    assertEquals(DifferenceType.VALUE_MISMATCH, result.getDifferences().get(0).getType());
+    assertEquals("$.name", result.getDifferences().get(0).getPath());
+
+    assertEquals(DifferenceType.MISSING_FIELD, result.getDifferences().get(1).getType());
+    assertEquals("$.age", result.getDifferences().get(1).getPath());
+
+    assertEquals(DifferenceType.UNEXPECTED_FIELD, result.getDifferences().get(2).getType());
+    assertEquals("$.active", result.getDifferences().get(2).getPath());
+
+    String expectedOutput =
+        "JSON differs (3 differences):"
+            + System.lineSeparator()
+            + "- VALUE_MISMATCH at $.name: expected=\"Alice\", actual=\"Bob\""
+            + System.lineSeparator()
+            + "- MISSING_FIELD at $.age: expected=30, actual=<missing>"
+            + System.lineSeparator()
+            + "- UNEXPECTED_FIELD at $.active: expected=<missing>, actual=true";
+
+    assertEquals(expectedOutput, result.toString());
   }
 }
