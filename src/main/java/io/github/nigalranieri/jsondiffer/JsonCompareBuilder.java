@@ -2,6 +2,7 @@ package io.github.nigalranieri.jsondiffer;
 
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,6 +46,10 @@ public final class JsonCompareBuilder {
   }
 
   public ComparisonResult compare(String expected, String actual) {
+    return build().compare(expected, actual);
+  }
+
+  public ComparisonResult compare(Path expected, Path actual) {
     return build().compare(expected, actual);
   }
 

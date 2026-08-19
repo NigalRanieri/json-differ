@@ -1,6 +1,7 @@
 package io.github.nigalranieri.jsondiffer;
 
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
+import java.nio.file.Path;
 
 public final class JsonCompare {
 
@@ -12,6 +13,10 @@ public final class JsonCompare {
 
   public static ComparisonResult compare(String expected, String actual) {
 
+    return builder().compare(expected, actual);
+  }
+
+  public static ComparisonResult compare(Path expected, Path actual) {
     return builder().compare(expected, actual);
   }
 
