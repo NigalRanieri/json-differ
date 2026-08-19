@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.nigalranieri.jsondiffer.exception.InvalidJsonException;
+import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import io.github.nigalranieri.jsondiffer.result.Difference;
 import io.github.nigalranieri.jsondiffer.result.DifferenceType;
@@ -19,35 +20,48 @@ public final class JsonCompare {
 
   private JsonCompare() {}
 
+  public static JsonCompareBuilder builder() {
+    return new JsonCompareBuilder();
+  }
+
   public static boolean equals(String first, String second) {
     return compare(first, second).isEqual();
   }
 
   public static ComparisonResult compare(String expected, String actual) {
+    return compare(expected, actual, new ComparisonOptions(false));
+  }
+
+  static ComparisonResult compare(String expected, String actual, ComparisonOptions options) {
+
     JsonNode expectedNode = parse(expected);
     JsonNode actualNode = parse(actual);
 
     List<Difference> differences = new ArrayList<>();
 
-    compareNodes("$", expectedNode, actualNode, differences);
+    compareNodes("$", expectedNode, actualNode, differences, options);
 
     return new ComparisonResult(differences);
   }
 
   private static void compareNodes(
-      String path, JsonNode expected, JsonNode actual, List<Difference> differences) {
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      List<Difference> differences,
+      ComparisonOptions options) {
 
     if (expected.equals(actual)) {
       return;
     }
 
     if (expected.isObject() && actual.isObject()) {
-      compareObjects(path, expected, actual, differences);
+      compareObjects(path, expected, actual, differences, options);
       return;
     }
 
     if (expected.isArray() && actual.isArray()) {
-      compareArrays(path, expected, actual, differences);
+      compareArrays(path, expected, actual, differences, options);
       return;
     }
 
@@ -92,7 +106,11 @@ public final class JsonCompare {
   }
 
   private static void compareObjects(
-      String path, JsonNode expected, JsonNode actual, List<Difference> differences) {
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      List<Difference> differences,
+      ComparisonOptions options) {
 
     Iterator<Map.Entry<String, JsonNode>> expectedFields = expected.fields();
 
@@ -111,7 +129,7 @@ public final class JsonCompare {
         continue;
       }
 
-      compareNodes(fieldPath, field.getValue(), actual.get(fieldName), differences);
+      compareNodes(fieldPath, field.getValue(), actual.get(fieldName), differences, options);
     }
 
     Iterator<Map.Entry<String, JsonNode>> actualFields = actual.fields();
@@ -132,12 +150,16 @@ public final class JsonCompare {
   }
 
   private static void compareArrays(
-      String path, JsonNode expected, JsonNode actual, List<Difference> differences) {
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      List<Difference> differences,
+      ComparisonOptions options) {
 
     int commonSize = Math.min(expected.size(), actual.size());
 
     for (int i = 0; i < commonSize; i++) {
-      compareNodes(path + "[" + i + "]", expected.get(i), actual.get(i), differences);
+      compareNodes(path + "[" + i + "]", expected.get(i), actual.get(i), differences, options);
     }
 
     for (int i = commonSize; i < expected.size(); i++) {

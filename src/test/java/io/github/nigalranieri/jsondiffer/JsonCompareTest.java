@@ -174,4 +174,26 @@ class JsonCompareTest {
     assertTrue(difference.getExpected().isMissing());
     assertEquals(3, difference.getActual().getValue());
   }
+
+  @Test
+  void shouldCompareUsingBuilder() {
+    String expected = "{\"name\":\"Alice\"}";
+    String actual = "{\"name\":\"Alice\"}";
+
+    ComparisonResult result = JsonCompare.builder().compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldCreateReusableComparator() {
+    JsonComparator comparator = JsonCompare.builder().build();
+
+    ComparisonResult first = comparator.compare("{\"name\":\"Alice\"}", "{\"name\":\"Alice\"}");
+
+    ComparisonResult second = comparator.compare("{\"age\":30}", "{\"age\":31}");
+
+    assertTrue(first.isEqual());
+    assertFalse(second.isEqual());
+  }
 }
