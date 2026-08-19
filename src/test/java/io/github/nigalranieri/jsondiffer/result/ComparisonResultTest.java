@@ -170,4 +170,25 @@ class ComparisonResultTest {
 
     assertEquals(result.format(ComparisonResultFormat.TRAVERSAL), result.toString());
   }
+
+  @Test
+  void shouldRejectNullDifference() {
+    List<Difference> differences =
+        Arrays.asList(
+            new Difference(
+                "$.name",
+                DifferenceType.VALUE_MISMATCH,
+                DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+                DifferenceValue.of(DifferenceValueType.STRING, "Bob")),
+            null);
+
+    assertThrows(NullPointerException.class, () -> new ComparisonResult(differences));
+  }
+
+  @Test
+  void shouldRejectNullResultFormat() {
+    ComparisonResult result = new ComparisonResult(Collections.<Difference>emptyList());
+
+    assertThrows(NullPointerException.class, () -> result.format(null));
+  }
 }

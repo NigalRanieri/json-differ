@@ -8,6 +8,11 @@ public final class ComparisonResult {
 
   public ComparisonResult(List<Difference> differences) {
     Objects.requireNonNull(differences, "differences");
+
+    for (Difference difference : differences) {
+      Objects.requireNonNull(difference, "difference");
+    }
+
     this.differences = Collections.unmodifiableList(new ArrayList<>(differences));
   }
 
@@ -38,25 +43,6 @@ public final class ComparisonResult {
   public int hashCode() {
     return Objects.hash(differences);
   }
-
-  /*@Override
-  public String toString() {
-    if (isEqual()) {
-      return "JSON is equal";
-    }
-
-    StringBuilder builder =
-        new StringBuilder()
-            .append("JSON differs (")
-            .append(differences.size())
-            .append(" differences):");
-
-    for (Difference difference : differences) {
-      builder.append(System.lineSeparator()).append("- ").append(difference);
-    }
-
-    return builder.toString();
-  }*/
 
   public String format(ComparisonResultFormat format) {
     Objects.requireNonNull(format, "format");

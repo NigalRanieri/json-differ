@@ -5,7 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.nigalranieri.jsondiffer.result.DifferenceValue;
 import io.github.nigalranieri.jsondiffer.result.DifferenceValueType;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class DifferenceValueTest {
 
@@ -144,5 +148,38 @@ class DifferenceValueTest {
         DifferenceValue.of(DifferenceValueType.ARRAY, Arrays.asList(1, "Alice", true, null));
 
     assertEquals("[1,\"Alice\",true,null]", value.toString());
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidTypeAndValueCombinations")
+  void shouldRejectValueIncompatibleWithType(DifferenceValueType type, Object value) {
+
+    assertThrows(IllegalArgumentException.class, () -> DifferenceValue.of(type, value));
+  }
+
+  private static Stream<Arguments> invalidTypeAndValueCombinations() {
+    return Stream.of(
+        Arguments.of(DifferenceValueType.STRING, 42),
+        Arguments.of(DifferenceValueType.NUMBER, "42"),
+        Arguments.of(DifferenceValueType.BOOLEAN, "true"),
+        Arguments.of(DifferenceValueType.OBJECT, Arrays.asList("value")),
+        Arguments.of(DifferenceValueType.ARRAY, Collections.singletonMap("key", "value")));
+  }
+
+  @ParameterizedTest
+  @MethodSource("validTypeAndValueCombinations")
+  void shouldAcceptValueCompatibleWithType(DifferenceValueType type, Object value) {
+
+    assertDoesNotThrow(() -> DifferenceValue.of(type, value));
+  }
+
+  private static Stream<Arguments> validTypeAndValueCombinations() {
+    return Stream.of(
+        Arguments.of(DifferenceValueType.STRING, "Alice"),
+        Arguments.of(DifferenceValueType.NUMBER, 42),
+        Arguments.of(DifferenceValueType.NUMBER, 42.5),
+        Arguments.of(DifferenceValueType.BOOLEAN, true),
+        Arguments.of(DifferenceValueType.OBJECT, Collections.singletonMap("name", "Alice")),
+        Arguments.of(DifferenceValueType.ARRAY, Arrays.asList(1, 2, 3)));
   }
 }

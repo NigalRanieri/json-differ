@@ -53,7 +53,31 @@ public final class DifferenceValue {
       throw new IllegalArgumentException("Use missing() or ofNull() for " + type);
     }
 
+    Objects.requireNonNull(value, "value");
+
+    if (!isCompatible(type, value)) {
+      throw new IllegalArgumentException("Value is not compatible with type " + type);
+    }
+
     return new DifferenceValue(type, value);
+  }
+
+  private static boolean isCompatible(DifferenceValueType type, Object value) {
+
+    switch (type) {
+      case STRING:
+        return value instanceof String;
+      case NUMBER:
+        return value instanceof Number;
+      case BOOLEAN:
+        return value instanceof Boolean;
+      case OBJECT:
+        return value instanceof Map;
+      case ARRAY:
+        return value instanceof List;
+      default:
+        return false;
+    }
   }
 
   public DifferenceValueType getType() {
