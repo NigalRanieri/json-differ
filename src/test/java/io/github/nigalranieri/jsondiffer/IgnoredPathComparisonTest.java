@@ -71,4 +71,39 @@ public class IgnoredPathComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void shouldIgnoreArrayElementsUsingWildcard() {
+    String expected =
+        "{\"users\":["
+            + "{\"name\":\"Alice\",\"timestamp\":\"10:00\"},"
+            + "{\"name\":\"Bob\",\"timestamp\":\"11:00\"}"
+            + "]}";
+
+    String actual =
+        "{\"users\":["
+            + "{\"name\":\"Alice\",\"timestamp\":\"15:00\"},"
+            + "{\"name\":\"Bob\",\"timestamp\":\"16:00\"}"
+            + "]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.users[*].timestamp").compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldNotIgnoreNonMatchingWildcardPath() {
+    String expected = "{\"users\":[{\"name\":\"Alice\",\"timestamp\":\"10:00\"}]}";
+
+    String actual = "{\"users\":[{\"name\":\"Bob\",\"timestamp\":\"15:00\"}]}";
+
+    ComparisonResult result =
+        JsonCompare.builder().ignorePath("$.users[*].timestamp").compare(expected, actual);
+
+    assertFalse(result.isEqual());
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals("$.users[0].name", result.getDifferences().get(0).getPath());
+  }
 }
