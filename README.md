@@ -24,25 +24,19 @@ It is strict by default, while allowing comparison behavior to be customized whe
 
 ## Installation
 
-`json-differ` is currently under development toward `0.1.0` and is not yet available from Maven Central.
+`json-differ` is available from Maven Central.
 
-For local development, install the project into your local Maven repository:
-
-```bash
-mvn clean install
-```
-
-Then add:
+Add the following dependency to your Maven project:
 
 ```xml
 <dependency>
     <groupId>io.github.nigalranieri</groupId>
     <artifactId>json-differ</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
-The installation instructions will be updated when `0.1.0` is published to Maven Central.
+`json-differ` requires Java 8 or later.
 
 ## Quick Start
 
