@@ -31,7 +31,7 @@ It is strict by default, while allowing comparison behavior to be customized whe
 
 `json-differ` is available from Maven Central.
 
-Add the following dependency to your Maven project:
+### Maven
 
 ```xml
 <dependency>
@@ -39,6 +39,24 @@ Add the following dependency to your Maven project:
     <artifactId>json-differ</artifactId>
     <version>0.1.0</version>
 </dependency>
+```
+
+### Gradle
+
+**Groovy DSL**
+
+```groovy
+dependencies {
+    implementation 'io.github.nigalranieri:json-differ:0.1.0'
+}
+```
+
+**Kotlin DSL**
+
+```kotlin
+dependencies {
+    implementation("io.github.nigalranieri:json-differ:0.1.0")
+}
 ```
 
 `json-differ` requires Java 8 or later.
