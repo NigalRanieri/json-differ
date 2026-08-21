@@ -1,0 +1,32 @@
+body {
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    margin-bottom: 3rem;
+}
+
+nav {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+section {
+    margin: 3rem 0;
+}
+
+pre {
+    overflow-x: auto;
+    padding: 1rem;
+    border-radius: 6px;
+    background: #f6f8fa;
+}
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}

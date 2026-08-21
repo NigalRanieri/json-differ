@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>json-differ — Structural JSON diff for Java</title>
+
+    <meta
+            name="description"
+            content="json-differ is a configurable structural JSON comparison and diffing library for Java 8+, available from Maven Central."
+    >
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+<main>
+    <header>
+        <h1>json-differ</h1>
+
+        <p>
+            A configurable structural JSON comparison and diffing library
+            for Java 8+.
+        </p>
+
+        <nav>
+            <a href="https://github.com/NigalRanieri/json-differ">GitHub</a>
+            <a href="https://central.sonatype.com/artifact/io.github.nigalranieri/json-differ">
+                Maven Central
+            </a>
+            <a href="apidocs/">API Documentation</a>
+        </nav>
+    </header>
+
+    <section>
+        <h2>Quick Start</h2>
+
+        <pre><code>ComparisonResult result =
+    JsonCompare.compare(expected, actual);
+
+if (!result.isEqual()) {
+    System.out.println(result);
+}</code></pre>
+    </section>
+
+    <section>
+        <h2>Installation</h2>
+
+        <h3>Maven</h3>
+
+        <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.github.nigalranieri&lt;/groupId&gt;
+    &lt;artifactId&gt;json-differ&lt;/artifactId&gt;
+    &lt;version&gt;0.1.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+
+        <h3>Gradle</h3>
+
+        <pre><code>implementation 'io.github.nigalranieri:json-differ:0.1.0'</code></pre>
+    </section>
+
+    <section>
+        <h2>Features</h2>
+
+        <ul>
+            <li>Structural JSON comparison</li>
+            <li>Detailed differences with JSON paths</li>
+            <li>Ignored paths with wildcard support</li>
+            <li>Optional unordered array comparison</li>
+            <li>Numeric tolerance</li>
+            <li>Reusable configured comparators</li>
+            <li>Java 8 compatible</li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>
