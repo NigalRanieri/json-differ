@@ -3,6 +3,7 @@
 [![Build](https://github.com/NigalRanieri/json-differ/actions/workflows/build.yml/badge.svg)](https://github.com/NigalRanieri/json-differ/actions/workflows/build.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nigalranieri/json-differ.svg)](https://central.sonatype.com/artifact/io.github.nigalranieri/json-differ)
 ![Java](https://img.shields.io/badge/Java-8%2B-blue)
+![Coverage](https://img.shields.io/badge/Coverage-%E2%89%A590%25-brightgreen)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 A configurable structural JSON comparison and diffing library for Java.
