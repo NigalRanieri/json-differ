@@ -29,7 +29,7 @@ jobs:
         run: mvn --batch-mode spotless:check
 
       - name: Verify
-        run: mvn --batch-mode verify
+        run: mvn --batch-mode -Dspotless.skip=true verify
 
   compatibility:
     runs-on: ubuntu-latest
