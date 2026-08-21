@@ -92,16 +92,6 @@
                         <endWithNewline />
                     </java>
                 </configuration>
-
-                <executions>
-                    <execution>
-                        <id>spotless-apply</id>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>apply</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
