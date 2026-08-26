@@ -4,10 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>json-differ Playground</title>
+    <title>json-differ Playground – Online JSON Comparison Tool</title>
+
+    <meta
+            name="description"
+            content="Compare JSON documents directly in your browser with json-differ. Ignore paths, compare unordered arrays, set numeric tolerance, and explore JSON differences without uploading your data."
+    />
+
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical" href="https://nigalranieri.github.io/json-differ/demo/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="json-differ Playground" />
+    <meta
+            property="og:description"
+            content="Compare JSON directly in your browser with configurable paths, array ordering, numeric tolerance, and multiple result formats."
+    />
+    <meta property="og:url" content="https://nigalranieri.github.io/json-differ/demo/" />
 
     <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
-
     <link rel="stylesheet" href="./css/playground.css" />
 </head>
 
@@ -22,13 +38,15 @@
         </div>
 
         <div class="header-actions">
-            <button
-                    class="secondary-button"
-                    id="resetExample"
-                    type="button"
+            <a
+                    class="secondary-button header-link"
+                    href="https://github.com/NigalRanieri/json-differ"
+                    target="_blank"
+                    rel="noopener noreferrer"
             >
-                Reset example
-            </button>
+                View on GitHub
+            </a>
+            <button class="secondary-button" id="resetExample" type="button">Reset example</button>
 
             <button
                     class="theme-button"
@@ -42,27 +60,63 @@
         </div>
     </header>
 
-    <section class="editors">
-        <article class="card" id="expectedCard">
+    <section class="workspace">
+        <section class="card behavior-card">
+            <div class="card-header">
+                <h2 class="card-title">Behavior</h2>
+            </div>
+
+            <div class="side-panel-content">
+                <label class="option-row">
+                    <input id="ignoreArrayOrder" type="checkbox" />
+                    <span>Ignore array order globally</span>
+                </label>
+
+                <label class="option-row">
+                    <input id="nullMissingEqual" type="checkbox" />
+                    <span>Treat null and missing fields as equal</span>
+                </label>
+
+                <label class="option-field">
+                    <span>Numeric tolerance</span>
+                    <input
+                            id="numericTolerance"
+                            type="number"
+                            min="0"
+                            step="any"
+                            placeholder="Exact comparison"
+                    />
+                    <small>Differences must be strictly below the tolerance.</small>
+                </label>
+
+                <fieldset class="option-field result-format">
+                    <legend>Result format</legend>
+
+                    <label>
+                        <input name="resultFormat" type="radio" value="traversal" checked />
+                        Traversal
+                    </label>
+
+                    <label>
+                        <input name="resultFormat" type="radio" value="grouped" />
+                        Grouped
+                    </label>
+                </fieldset>
+            </div>
+        </section>
+
+        <article class="card editor-card" id="expectedCard">
             <div class="card-header">
                 <h2 class="card-title">Expected JSON</h2>
 
                 <div class="editor-actions">
-                    <input
-                            id="expectedFile"
-                            type="file"
-                            accept=".json,application/json"
-                            hidden
-                    >
-                    <button class="secondary-button" id="loadExpected" type="button">
-                        Load file
-                    </button>
-                    <button class="secondary-button" id="formatExpected" type="button">
-                        Format
-                    </button>
-                    <button class="secondary-button" id="clearExpected" type="button">
-                        Clear
-                    </button>
+                    <input id="expectedFile" type="file" accept=".json,application/json" hidden />
+
+                    <button class="secondary-button" id="loadExpected" type="button">Load file</button>
+
+                    <button class="secondary-button" id="formatExpected" type="button">Format</button>
+
+                    <button class="secondary-button" id="clearExpected" type="button">Clear</button>
                 </div>
             </div>
 
@@ -75,26 +129,18 @@
             >
         </article>
 
-        <article class="card" id="actualCard">
+        <article class="card editor-card" id="actualCard">
             <div class="card-header">
                 <h2 class="card-title">Actual JSON</h2>
 
                 <div class="editor-actions">
-                    <input
-                            id="actualFile"
-                            type="file"
-                            accept=".json,application/json"
-                            hidden
-                    >
-                    <button class="secondary-button" id="loadActual" type="button">
-                        Load file
-                    </button>
-                    <button class="secondary-button" id="formatActual" type="button">
-                        Format
-                    </button>
-                    <button class="secondary-button" id="clearActual" type="button">
-                        Clear
-                    </button>
+                    <input id="actualFile" type="file" accept=".json,application/json" hidden />
+
+                    <button class="secondary-button" id="loadActual" type="button">Load file</button>
+
+                    <button class="secondary-button" id="formatActual" type="button">Format</button>
+
+                    <button class="secondary-button" id="clearActual" type="button">Clear</button>
                 </div>
             </div>
 
@@ -106,65 +152,36 @@
 }</textarea
             >
         </article>
-    </section>
 
-    <section class="card options-card">
-        <div class="card-header">
-            <h2 class="card-title">Comparison Options</h2>
-        </div>
+        <section class="card paths-card">
+            <div class="card-header">
+                <h2 class="card-title">Paths</h2>
+            </div>
 
-        <div class="options">
-            <label class="option-row">
-                <input id="ignoreArrayOrder" type="checkbox" />
-                <span>Ignore array order globally</span>
-            </label>
-
-            <label class="option-row">
-                <input id="nullMissingEqual" type="checkbox" />
-                <span>Treat null and missing fields as equal</span>
-            </label>
-
-            <label class="option-field">
-                <span>Numeric tolerance</span>
-                <input id="numericTolerance" type="number" min="0" step="any" placeholder="Exact comparison" />
-            </label>
-
-            <label class="option-field">
-                <span>Ignored paths</span>
-                <textarea
-                        id="ignoredPaths"
-                        rows="3"
-                        spellcheck="false"
-                        placeholder="$.metadata.timestamp&#10;$.users[*].updatedAt"
-                ></textarea>
-                <small>One path per line</small>
-            </label>
-
-            <label class="option-field">
-                <span>Unordered array paths</span>
-                <textarea
-                        id="unorderedArrayPaths"
-                        rows="3"
-                        spellcheck="false"
-                        placeholder="$.users&#10;$.groups[*].members"
-                ></textarea>
-                <small>One path per line</small>
-            </label>
-
-            <fieldset class="option-field">
-                <legend>Result format</legend>
-
-                <label>
-                    <input name="resultFormat" type="radio" value="traversal" checked />
-                    Traversal
+            <div class="side-panel-content">
+                <label class="option-field">
+                    <span>Ignored paths</span>
+                    <textarea
+                            id="ignoredPaths"
+                            rows="4"
+                            spellcheck="false"
+                            placeholder="$.metadata.timestamp&#10;$.users[*].updatedAt"
+                    ></textarea>
+                    <small>One path per line</small>
                 </label>
 
-                <label>
-                    <input name="resultFormat" type="radio" value="grouped" />
-                    Grouped
+                <label class="option-field">
+                    <span>Unordered array paths</span>
+                    <textarea
+                            id="unorderedArrayPaths"
+                            rows="4"
+                            spellcheck="false"
+                            placeholder="$.users&#10;$.groups[*].members"
+                    ></textarea>
+                    <small>One path per line</small>
                 </label>
-            </fieldset>
-        </div>
+            </div>
+        </section>
     </section>
 
     <div class="actions">
