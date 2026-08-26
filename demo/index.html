@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>json-differ browser PoC</title>
+    <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
+</head>
+
+<body>
+<h1>json-differ browser PoC</h1>
+
+<textarea id="expected" rows="10" cols="40">{"name":"Alice"}</textarea>
+<textarea id="actual" rows="10" cols="40">{"name":"Bob"}</textarea>
+
+<br><br>
+
+<button id="compare" disabled>Compare</button>
+
+<pre id="status">Starting CheerpJ...</pre>
+<pre id="result"></pre>
+
+<script type="module">
+    const expected = document.getElementById("expected");
+    const actual = document.getElementById("actual");
+    const compareButton = document.getElementById("compare");
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+
+    try {
+        await cheerpjInit({ version: 8 });
+
+        status.textContent = "Loading json-differ...";
+
+        const lib = await cheerpjRunLibrary(
+            "/app/demo/json-differ-demo.jar"
+        );
+
+        const DemoBridge =
+            await lib.io.github.nigalranieri.jsondiffer.demo.DemoBridge;
+
+        const JavaString = await lib.java.lang.String;
+
+        compareButton.disabled = false;
+        status.textContent = "Ready.";
+
+        compareButton.addEventListener("click", async () => {
+            try {
+                status.textContent = "Comparing...";
+
+                const expectedJava =
+                    await new JavaString(expected.value);
+
+                const actualJava =
+                    await new JavaString(actual.value);
+
+                const comparison =
+                    await DemoBridge.compare(expectedJava, actualJava);
+
+                result.textContent = await comparison.toString();
+                status.textContent = "Done.";
+
+            } catch (error) {
+                status.textContent = "Comparison failed.";
+                console.error("CheerpJ error:", error);
+
+                try {
+                    console.error("Java exception:", await error.toString());
+                    console.error("Message:", await error.getMessage());
+                } catch (_) {
+                }
+            }
+        });
+
+    } catch (error) {
+        status.textContent = "Failed to initialize.";
+        console.error("CheerpJ error:", error);
+    }
+</script>
+</body>
+</html>
