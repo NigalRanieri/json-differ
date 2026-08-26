@@ -12,6 +12,14 @@ A configurable structural JSON comparison and diffing library for Java.
 
 It is strict by default, while allowing comparison behavior to be customized when needed.
 
+## Live Playground
+
+Try **json-differ** directly in your browser — no installation required.
+
+**[Open the json-differ Playground](https://nigalranieri.github.io/json-differ/demo/)**
+
+The playground runs the real Java library in your browser and supports ignored paths, unordered arrays, numeric tolerance, null/missing equivalence, and grouped or traversal-based results.
+
 ## Features
 
 - Structural JSON comparison

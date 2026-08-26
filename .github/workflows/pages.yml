@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - feature/live-demo
 
   workflow_dispatch:
 
@@ -35,14 +36,63 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Build json-differ
+        run: mvn --batch-mode clean package
+
+      - name: Copy runtime dependencies
+        run: |
+          mkdir -p demo-build/dependencies
+
+          mvn --batch-mode dependency:copy-dependencies \
+            -DincludeScope=runtime \
+            -DoutputDirectory="${{ github.workspace }}/demo-build/dependencies"
+
+      - name: Compile demo bridge
+        run: |
+          mkdir -p demo-build/classes
+
+          javac \
+            --release 8 \
+            -cp target/json-differ-0.2.0-SNAPSHOT.jar \
+            -d demo-build/classes \
+            demo/bridge/src/io/github/nigalranieri/jsondiffer/demo/DemoBridge.java
+
+      - name: Build browser demo JAR
+        run: |
+          mkdir -p demo-build/bundle
+
+          cp -R demo-build/classes/. demo-build/bundle/
+
+          unzip -q -o \
+            target/json-differ-0.2.0-SNAPSHOT.jar \
+            -d demo-build/bundle
+
+          for jarfile in demo-build/dependencies/*.jar; do
+            unzip -q -o "$jarfile" -d demo-build/bundle
+          done
+
+          rm -f demo-build/bundle/META-INF/*.SF
+          rm -f demo-build/bundle/META-INF/*.RSA
+          rm -f demo-build/bundle/META-INF/*.DSA
+
+          jar cf demo-build/json-differ-demo.jar \
+            -C demo-build/bundle .
+
       - name: Generate Javadocs
         run: mvn --batch-mode javadoc:javadoc
 
       - name: Assemble site
         run: |
           mkdir -p site/apidocs
+          mkdir -p site/demo
+
           cp -R docs/. site/
           cp -R target/reports/apidocs/. site/apidocs/
+
+          cp demo/index.html site/demo/index.html
+          cp -R demo/css site/demo/css
+          cp -R demo/js site/demo/js
+          cp demo-build/json-differ-demo.jar site/demo/json-differ-demo.jar
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
