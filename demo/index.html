@@ -2,80 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>json-differ browser PoC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>json-differ Playground</title>
+
     <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
+
+
+    <link rel="stylesheet" href="./css/playground.css">
 </head>
 
 <body>
-<h1>json-differ browser PoC</h1>
+<main class="page">
+    <header>
+        <h1>json-differ Playground</h1>
+        <p class="subtitle">
+            Compare JSON directly in your browser using the real json-differ Java library.
+        </p>
+    </header>
 
-<textarea id="expected" rows="10" cols="40">{"name":"Alice"}</textarea>
-<textarea id="actual" rows="10" cols="40">{"name":"Bob"}</textarea>
+    <section class="editors">
+        <article class="card">
+            <div class="card-header">
+                <h2 class="card-title">Expected JSON</h2>
+                <button class="secondary-button" id="formatExpected" type="button">
+                    Format
+                </button>
+            </div>
 
-<br><br>
+            <textarea id="expected" spellcheck="false">{
+  "name": "Alice",
+  "age": 30,
+  "active": true
+}</textarea>
+        </article>
 
-<button id="compare" disabled>Compare</button>
+        <article class="card">
+            <div class="card-header">
+                <h2 class="card-title">Actual JSON</h2>
+                <button class="secondary-button" id="formatActual" type="button">
+                    Format
+                </button>
+            </div>
 
-<pre id="status">Starting CheerpJ...</pre>
-<pre id="result"></pre>
+            <textarea id="actual" spellcheck="false">{
+  "name": "Bob",
+  "age": 30,
+  "active": true
+}</textarea>
+        </article>
+    </section>
 
-<script type="module">
-    const expected = document.getElementById("expected");
-    const actual = document.getElementById("actual");
-    const compareButton = document.getElementById("compare");
-    const status = document.getElementById("status");
-    const result = document.getElementById("result");
+    <div class="actions">
+        <button class="primary-button" id="compare" type="button" disabled>
+            Compare
+        </button>
+    </div>
 
-    try {
-        await cheerpjInit({ version: 8 });
+    <p class="status" id="status">Starting browser Java runtime...</p>
 
-        status.textContent = "Loading json-differ...";
+    <section class="card result-card">
+        <div class="card-header">
+            <h2 class="card-title">Comparison Result</h2>
+        </div>
 
-        const jarUrl = new URL("./json-differ-demo.jar", window.location.href);
-        const jarPath = "/app" + jarUrl.pathname;
+        <pre class="result" id="result">Waiting for comparison...</pre>
+    </section>
 
-        const lib = await cheerpjRunLibrary(jarPath);
+    <p class="footer-note">
+        Comparison runs locally in your browser. JSON is not sent to a server.
+    </p>
+</main>
 
-        const DemoBridge =
-            await lib.io.github.nigalranieri.jsondiffer.demo.DemoBridge;
-
-        const JavaString = await lib.java.lang.String;
-
-        compareButton.disabled = false;
-        status.textContent = "Ready.";
-
-        compareButton.addEventListener("click", async () => {
-            try {
-                status.textContent = "Comparing...";
-
-                const expectedJava =
-                    await new JavaString(expected.value);
-
-                const actualJava =
-                    await new JavaString(actual.value);
-
-                const comparison =
-                    await DemoBridge.compare(expectedJava, actualJava);
-
-                result.textContent = await comparison.toString();
-                status.textContent = "Done.";
-
-            } catch (error) {
-                status.textContent = "Comparison failed.";
-                console.error("CheerpJ error:", error);
-
-                try {
-                    console.error("Java exception:", await error.toString());
-                    console.error("Message:", await error.getMessage());
-                } catch (_) {
-                }
-            }
-        });
-
-    } catch (error) {
-        status.textContent = "Failed to initialize.";
-        console.error("CheerpJ error:", error);
-    }
-</script>
+<script type="module" src="./js/playground.js"></script>
 </body>
 </html>

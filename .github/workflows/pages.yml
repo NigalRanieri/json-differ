@@ -90,6 +90,8 @@ jobs:
           cp -R target/reports/apidocs/. site/apidocs/
 
           cp demo/index.html site/demo/index.html
+          cp -R demo/css site/demo/css
+          cp -R demo/js site/demo/js
           cp demo-build/json-differ-demo.jar site/demo/json-differ-demo.jar
 
       - name: Configure Pages
