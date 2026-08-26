@@ -31,9 +31,10 @@
 
         status.textContent = "Loading json-differ...";
 
-        const lib = await cheerpjRunLibrary(
-            "/app/demo/json-differ-demo.jar"
-        );
+        const jarUrl = new URL("./json-differ-demo.jar", window.location.href);
+        const jarPath = "/app" + jarUrl.pathname;
+
+        const lib = await cheerpjRunLibrary(jarPath);
 
         const DemoBridge =
             await lib.io.github.nigalranieri.jsondiffer.demo.DemoBridge;
