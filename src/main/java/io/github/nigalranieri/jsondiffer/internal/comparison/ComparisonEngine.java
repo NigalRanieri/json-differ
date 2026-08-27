@@ -246,33 +246,35 @@ public final class ComparisonEngine {
     boolean[] expectedMatched = new boolean[expected.size()];
     boolean[] actualMatched = new boolean[actual.size()];
 
-    matchExactElements(expected, actual, expectedMatched, actualMatched);
+    matchExactElements(path, expected, actual, expectedMatched, actualMatched);
 
     matchSimilarElements(path, expected, actual, expectedMatched, actualMatched, differences);
 
     addUnmatchedElements(path, expected, actual, expectedMatched, actualMatched, differences);
   }
 
-  private boolean nodesAreEqual(JsonNode expected, JsonNode actual) {
-
+  private boolean nodesAreEqual(String path, JsonNode expected, JsonNode actual) {
     List<Difference> differences = new ArrayList<>();
-
-    compareNodes("$", expected, actual, differences);
-
+    compareNodes(path, expected, actual, differences);
     return differences.isEmpty();
   }
 
   private void matchExactElements(
-      JsonNode expected, JsonNode actual, boolean[] expectedMatched, boolean[] actualMatched) {
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      boolean[] expectedMatched,
+      boolean[] actualMatched) {
 
     for (int i = 0; i < expected.size(); i++) {
-      for (int j = 0; j < actual.size(); j++) {
+      String elementPath = path + "[" + i + "]";
 
+      for (int j = 0; j < actual.size(); j++) {
         if (actualMatched[j]) {
           continue;
         }
 
-        if (nodesAreEqual(expected.get(i), actual.get(j))) {
+        if (nodesAreEqual(elementPath, expected.get(i), actual.get(j))) {
           expectedMatched[i] = true;
           actualMatched[j] = true;
           break;

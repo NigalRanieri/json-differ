@@ -186,4 +186,56 @@ class UnorderedArrayComparisonTest {
     assertFalse(result.isEqual());
     assertEquals(2, result.getDifferences().size());
   }
+
+  @Test
+  void unorderedArrayComparisonRespectsNumericTolerance() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .numericTolerance("$.values[*]", 0.1)
+            .compare("{\"values\":[10.0,20.0,30.0]}", "{\"values\":[30.05,10.05,20.05]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void unorderedArrayComparisonRespectsIgnoreCase() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .ignoreCase("$.values[*]")
+            .compare(
+                "{\"values\":[\"Alice\",\"Bob\",\"Charlie\"]}",
+                "{\"values\":[\"charlie\",\"alice\",\"BOB\"]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void numericToleranceInsideUnorderedArrayDoesNotApplyOutsideConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .numericTolerance("$.values[*]", 0.1)
+            .compare(
+                "{\"values\":[10.0,20.0],\"other\":5.0}",
+                "{\"values\":[20.05,10.05],\"other\":5.05}");
+
+    assertFalse(result.isEqual());
+    assertEquals("$.other", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void ignoreCaseInsideUnorderedArrayDoesNotApplyOutsideConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .ignoreCase("$.values[*]")
+            .compare(
+                "{\"values\":[\"Alice\",\"Bob\"],\"other\":\"Hello\"}",
+                "{\"values\":[\"bob\",\"alice\"],\"other\":\"hello\"}");
+
+    assertFalse(result.isEqual());
+    assertEquals("$.other", result.getDifferences().get(0).getPath());
+  }
 }
