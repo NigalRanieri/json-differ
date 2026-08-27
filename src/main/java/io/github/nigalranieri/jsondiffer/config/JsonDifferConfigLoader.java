@@ -23,6 +23,8 @@ public final class JsonDifferConfigLoader {
   /**
    * Loads configuration from YAML text.
    *
+   * <p>Blank YAML is treated as an empty configuration and therefore uses all default settings.
+   *
    * @param yaml the YAML configuration
    * @return the parsed configuration
    * @throws NullPointerException if {@code yaml} is {@code null}
@@ -30,6 +32,10 @@ public final class JsonDifferConfigLoader {
    */
   public static JsonDifferConfig load(String yaml) throws IOException {
     Objects.requireNonNull(yaml, "yaml");
+
+    if (yaml.trim().isEmpty()) {
+      return new JsonDifferConfig();
+    }
 
     JsonDifferConfig config = YAML_MAPPER.readValue(yaml, JsonDifferConfig.class);
 

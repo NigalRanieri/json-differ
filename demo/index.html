@@ -8,21 +8,18 @@
 
     <meta
             name="description"
-            content="Compare JSON documents directly in your browser with json-differ. Ignore paths, compare unordered arrays, set numeric tolerance, and explore JSON differences without uploading your data."
+            content="Compare JSON documents directly in your browser with json-differ. Use optional YAML configuration for ignored paths, unordered arrays, numeric tolerance, null/missing equivalence, case-insensitive strings, and result formatting."
     />
-
     <meta name="robots" content="index, follow" />
 
     <link rel="canonical" href="https://nigalranieri.github.io/json-differ/demo/" />
-
     <meta property="og:type" content="website" />
     <meta property="og:title" content="json-differ Playground" />
     <meta
             property="og:description"
-            content="Compare JSON directly in your browser with configurable paths, array ordering, numeric tolerance, and multiple result formats."
+            content="Compare JSON directly in your browser with optional YAML configuration for path-aware comparison rules and result formatting."
     />
     <meta property="og:url" content="https://nigalranieri.github.io/json-differ/demo/" />
-
     <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
     <link rel="stylesheet" href="./css/playground.css" />
 </head>
@@ -36,7 +33,6 @@
                 Compare JSON directly in your browser using the real json-differ Java library.
             </p>
         </div>
-
         <div class="header-actions">
             <a
                     class="secondary-button header-link"
@@ -47,7 +43,6 @@
                 View on GitHub
             </a>
             <button class="secondary-button" id="resetExample" type="button">Reset example</button>
-
             <button
                     class="theme-button"
                     id="themeToggle"
@@ -61,54 +56,9 @@
     </header>
 
     <section class="workspace">
-        <section class="card behavior-card">
-            <div class="card-header">
-                <h2 class="card-title">Behavior</h2>
-            </div>
-
-            <div class="side-panel-content">
-                <label class="option-row">
-                    <input id="ignoreArrayOrder" type="checkbox" />
-                    <span>Ignore array order globally</span>
-                </label>
-
-                <label class="option-row">
-                    <input id="nullMissingEqual" type="checkbox" />
-                    <span>Treat null and missing fields as equal</span>
-                </label>
-
-                <label class="option-field">
-                    <span>Numeric tolerance</span>
-                    <input
-                            id="numericTolerance"
-                            type="number"
-                            min="0"
-                            step="any"
-                            placeholder="Exact comparison"
-                    />
-                    <small>Differences must be strictly below the tolerance.</small>
-                </label>
-
-                <fieldset class="option-field result-format">
-                    <legend>Result format</legend>
-
-                    <label>
-                        <input name="resultFormat" type="radio" value="traversal" checked />
-                        Traversal
-                    </label>
-
-                    <label>
-                        <input name="resultFormat" type="radio" value="grouped" />
-                        Grouped
-                    </label>
-                </fieldset>
-            </div>
-        </section>
-
         <article class="card editor-card" id="expectedCard">
             <div class="card-header">
                 <h2 class="card-title">Expected JSON</h2>
-
                 <div class="editor-actions">
                     <input id="expectedFile" type="file" accept=".json,application/json" hidden />
 
@@ -119,12 +69,22 @@
                     <button class="secondary-button" id="clearExpected" type="button">Clear</button>
                 </div>
             </div>
-
             <textarea id="expected" spellcheck="false">
 {
-  "name": "Alice",
-  "age": 30,
-  "active": true
+  "user": {
+    "name": "Alice",
+    "email": "ALICE@example.com",
+    "score": 98.5,
+    "nickname": null
+  },
+  "roles": [
+    "admin",
+    "editor"
+  ],
+  "metadata": {
+    "requestId": "abc-123",
+    "timestamp": "2026-08-27T10:00:00Z"
+  }
 }</textarea
             >
         </article>
@@ -135,7 +95,6 @@
 
                 <div class="editor-actions">
                     <input id="actualFile" type="file" accept=".json,application/json" hidden />
-
                     <button class="secondary-button" id="loadActual" type="button">Load file</button>
 
                     <button class="secondary-button" id="formatActual" type="button">Format</button>
@@ -146,42 +105,106 @@
 
             <textarea id="actual" spellcheck="false">
 {
-  "name": "Bob",
-  "age": 30,
-  "active": true
+  "user": {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "score": 98.7
+  },
+  "roles": [
+    "editor",
+    "admin"
+  ],
+  "metadata": {
+    "requestId": "xyz-789",
+    "timestamp": "2026-08-27T10:05:00Z"
+  }
 }</textarea
             >
         </article>
 
-        <section class="card paths-card">
+        <article class="card editor-card config-card" id="configCard">
             <div class="card-header">
-                <h2 class="card-title">Paths</h2>
+                <div class="config-title-row">
+                    <div>
+                        <h2 class="card-title">YAML Config</h2>
+                        <span class="card-subtitle">Optional</span>
+                    </div>
+
+                    <div class="info-wrapper">
+                        <button
+                                class="info-button"
+                                id="configInfoButton"
+                                type="button"
+                                aria-label="Show YAML configuration help"
+                                aria-expanded="false"
+                                aria-controls="configInfoPopover"
+                        >
+                            i
+                        </button>
+
+                        <div
+                                class="config-info-popover"
+                                id="configInfoPopover"
+                                role="dialog"
+                                aria-label="YAML configuration help"
+                                hidden
+                        >
+                            <strong>YAML configuration is optional.</strong>
+                            <p>Leave this box empty for strict comparison.</p>
+
+                            <ul>
+                                <li><strong>Ignored paths</strong> — ignore values or subtrees.</li>
+                                <li>
+                                    <strong>Array order</strong> — ignore order globally or at selected paths.
+                                </li>
+                                <li>
+                                    <strong>Null vs missing</strong> — treat them as equal globally or at
+                                    selected paths.
+                                </li>
+                                <li>
+                                    <strong>Numeric tolerance</strong> — set global or path-specific tolerances.
+                                </li>
+                                <li>
+                                    <strong>Ignore case</strong> — compare string values case-insensitively
+                                    globally or by path.
+                                </li>
+                                <li>
+                                    <strong>Output format</strong> — use <code>traversal</code> or
+                                    <code>grouped</code>.
+                                </li>
+                                <li>
+                                    <strong>Max cell width</strong> — control wrapping in formatted results.
+                                </li>
+                            </ul>
+
+                            <p><strong>Path wildcards:</strong></p>
+
+                            <ul>
+                                <li><code>*</code> — any property at one level</li>
+                                <li><code>[*]</code> — any array index</li>
+                                <li><code>**</code> — recursive matching</li>
+                            </ul>
+
+                            <p class="config-info-note">
+                                Invalid YAML, unknown settings, invalid paths, and invalid values are rejected.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-actions">
+                    <button class="secondary-button" id="loadConfigExample" type="button">Load example</button>
+
+                    <button class="secondary-button" id="clearConfig" type="button">Clear</button>
+                </div>
             </div>
 
-            <div class="side-panel-content">
-                <label class="option-field">
-                    <span>Ignored paths</span>
-                    <textarea
-                            id="ignoredPaths"
-                            rows="4"
-                            spellcheck="false"
-                            placeholder="$.metadata.timestamp&#10;$.users[*].updatedAt"
-                    ></textarea>
-                    <small>One path per line</small>
-                </label>
-
-                <label class="option-field">
-                    <span>Unordered array paths</span>
-                    <textarea
-                            id="unorderedArrayPaths"
-                            rows="4"
-                            spellcheck="false"
-                            placeholder="$.users&#10;$.groups[*].members"
-                    ></textarea>
-                    <small>One path per line</small>
-                </label>
-            </div>
-        </section>
+            <textarea
+                    id="config"
+                    spellcheck="false"
+                    placeholder="# Optional configuration&#10;# comparison:&#10;#   ignorePaths:&#10;#     - $.metadata.timestamp&#10;#&#10;# output:&#10;#   format: grouped"
+            ></textarea>
+        </article>
     </section>
 
     <div class="actions">
@@ -199,7 +222,7 @@
     </section>
 
     <p class="footer-note">
-        Comparison runs locally in your browser. JSON is not sent to a server.
+        Comparison runs locally in your browser. JSON and YAML configuration are not sent to a server.
         <span class="footer-separator">·</span>
         © 2026 Nigal Ranieri
     </p>

@@ -207,4 +207,26 @@ public class JsonDifferConfigLoaderTest {
       Files.deleteIfExists(path);
     }
   }
+
+  @Test
+  void treatsBlankYamlAsDefaultConfiguration() throws IOException {
+    JsonDifferConfig config = JsonDifferConfigLoader.load("");
+
+    assertNotNull(config);
+    assertNotNull(config.getComparison());
+    assertNotNull(config.getOutput());
+
+    assertTrue(config.getComparison().getIgnorePaths().isEmpty());
+    assertEquals(ComparisonResultFormat.TRAVERSAL, config.getOutput().getFormat());
+    assertEquals(Integer.valueOf(40), config.getOutput().getColumns().getMaxCellWidth());
+  }
+
+  @Test
+  void treatsWhitespaceOnlyYamlAsDefaultConfiguration() throws IOException {
+    JsonDifferConfig config = JsonDifferConfigLoader.load("   \n\t  ");
+
+    assertNotNull(config);
+    assertNotNull(config.getComparison());
+    assertNotNull(config.getOutput());
+  }
 }
