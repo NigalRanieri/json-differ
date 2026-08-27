@@ -16,7 +16,7 @@ import java.util.*;
 public final class ComparisonResult {
 
   private final List<Difference> differences;
-  private static final int MAX_CELL_WIDTH = 40;
+  private static final int DEFAULT_MAX_CELL_WIDTH = 40;
 
   /**
    * Creates a comparison result from the supplied differences.
@@ -131,7 +131,7 @@ public final class ComparisonResult {
     return formatSummary()
         + System.lineSeparator()
         + System.lineSeparator()
-        + TableFormatter.format(headers, rows, MAX_CELL_WIDTH);
+        + TableFormatter.format(headers, rows, DEFAULT_MAX_CELL_WIDTH);
   }
 
   private String formatSummary() {
@@ -170,6 +170,6 @@ public final class ComparisonResult {
     return formatSummary()
         + System.lineSeparator()
         + System.lineSeparator()
-        + TableFormatter.format(headers, rows, MAX_CELL_WIDTH);
+        + TableFormatter.format(headers, rows, DEFAULT_MAX_CELL_WIDTH);
   }
 }
