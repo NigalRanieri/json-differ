@@ -1,5 +1,4 @@
 # json-differ
-
 [![Build](https://github.com/NigalRanieri/json-differ/actions/workflows/build.yml/badge.svg)](https://github.com/NigalRanieri/json-differ/actions/workflows/build.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nigalranieri/json-differ.svg)](https://central.sonatype.com/artifact/io.github.nigalranieri/json-differ)
 ![Java](https://img.shields.io/badge/Java-8%2B-blue)
@@ -25,12 +24,13 @@ The playground runs the real Java library in your browser and supports ignored p
 - Structural JSON comparison
 - Detailed differences with JSON paths
 - Ordered arrays by default
-- Optional unordered array comparison
-- Path-specific unordered arrays
+- Optional global and path-specific unordered array comparison
 - Ignored paths with wildcard support
+- Optional global and path-specific `null`/missing equivalence
+- Numeric comparison with global and path-specific tolerance
+- Optional global and path-specific case-insensitive string comparison
+- Consistent wildcard support across path-specific comparison rules
 - Recursive path matching with `**`
-- Optional `null` and missing-field equivalence
-- Numeric comparison with configurable tolerance
 - String and file-based input
 - Reusable configured comparators
 - Traversal and grouped result formatting
@@ -96,7 +96,6 @@ Output:
 
 ```text
 JSON differs (1 differences):
-
 +--------+----------------+----------+--------+
 | PATH   | TYPE           | EXPECTED | ACTUAL |
 +--------+----------------+----------+--------+
@@ -200,7 +199,7 @@ and:
 
 are different under the default comparison rules.
 
-To treat them as equivalent:
+To treat `null` and missing fields as equivalent globally:
 
 ```java
 ComparisonResult result =
@@ -209,13 +208,24 @@ ComparisonResult result =
         .compare(expected, actual);
 ```
 
+The rule can also be enabled only at specific paths:
+
+```java
+ComparisonResult result =
+    JsonCompare.builder()
+        .treatNullAndMissingAsEqual("$.users[*].nickname")
+        .compare(expected, actual);
+```
+
+Other fields remain strict unless global null/missing equivalence is enabled.
+
 This option applies to object fields and does not change array semantics.
 
 ### Numeric tolerance
 
 Numeric values are compared exactly by default.
 
-Configure an absolute tolerance when approximate numeric comparison is needed:
+Configure a global absolute tolerance when approximate numeric comparison is needed:
 
 ```java
 ComparisonResult result =
@@ -226,21 +236,67 @@ ComparisonResult result =
 
 With a tolerance of `0.01`, numeric values whose absolute difference is less than or equal to `0.01` are considered equal.
 
-The tolerance must be non-negative and finite.
-
-### Combine options
-
-Options can be combined:
+Different tolerances can also be configured for specific paths:
 
 ```java
 ComparisonResult result =
     JsonCompare.builder()
-        .ignorePath("$.timestamp")
-        .ignoreArrayOrder("$.users")
-        .treatNullAndMissingAsEqual()
-        .numericTolerance(0.001)
+        .numericTolerance(0.01)
+        .numericTolerance("$.measurements[*].value", 0.1)
+        .numericTolerance("$.price", 0.001)
         .compare(expected, actual);
 ```
+
+A matching path-specific tolerance takes precedence over the global tolerance. If multiple path-specific tolerance rules match the same path, the last configured matching tolerance is used.
+
+When no path-specific tolerance matches, the global tolerance is used. If no global tolerance is configured either, numeric values are compared exactly.
+
+Tolerances must be non-negative and finite.
+
+### Ignore string case
+
+String values are case-sensitive by default.
+
+To compare all string values without considering case:
+
+```java
+ComparisonResult result =
+    JsonCompare.builder()
+        .ignoreCase()
+        .compare(expected, actual);
+```
+
+For example, `"Alice"` and `"alice"` are considered equal when case-insensitive comparison is enabled.
+
+Case-insensitive comparison can also be enabled only at specific paths:
+
+```java
+ComparisonResult result =
+    JsonCompare.builder()
+        .ignoreCase("$.users[*].email")
+        .compare(expected, actual);
+```
+
+String values at other paths remain case-sensitive unless global case-insensitive comparison is enabled.
+
+This option applies only to string values. Object field names remain case-sensitive.
+
+### Combine options
+
+Comparison rules can be combined:
+
+```java
+ComparisonResult result =
+    JsonCompare.builder()
+        .ignorePath("$.metadata.timestamp")
+        .ignoreArrayOrder("$.users")
+        .treatNullAndMissingAsEqual("$.users[*].nickname")
+        .numericTolerance("$.users[*].score", 0.01)
+        .ignoreCase("$.users[*].email")
+        .compare(expected, actual);
+```
+
+Ignored paths take precedence over other comparison rules at the same path.
 
 ### Reusable comparators
 
@@ -264,7 +320,15 @@ A built comparator keeps the configuration it was created with and is unaffected
 
 ## Path Syntax
 
-Configuration methods such as `ignorePath(...)` and path-specific `ignoreArrayOrder(...)` use path expressions starting from `$`, the document root.
+All path-specific comparison rules use the same path syntax. Path expressions start from `$`, the document root.
+
+This applies to:
+
+- `ignorePath(...)`
+- `ignoreArrayOrder(...)`
+- `treatNullAndMissingAsEqual(...)`
+- `numericTolerance(...)`
+- `ignoreCase(...)`
 
 | Syntax | Meaning | Example |
 | --- | --- | --- |
@@ -289,6 +353,15 @@ Examples:
 
 // Ignore array order for every users array inside groups
 .ignoreArrayOrder("$.groups[*].users")
+
+// Treat null and missing nicknames as equivalent
+.treatNullAndMissingAsEqual("$.users[*].nickname")
+
+// Use a different tolerance for measurement values
+.numericTolerance("$.measurements[*].value", 0.1)
+
+// Compare email values without considering case
+.ignoreCase("$.users[*].email")
 ```
 
 Paths must be syntactically valid and start with `$`. Invalid paths are rejected with `IllegalArgumentException`.
@@ -305,6 +378,7 @@ Without additional configuration:
 - Array length and duplicate elements are significant.
 - JSON `null` and a missing field are different.
 - Numbers are compared exactly.
+- String values are case-sensitive.
 - Values of different JSON types are not considered equal.
 - No paths are ignored.
 
@@ -361,7 +435,6 @@ if (!result.isEqual()) {
 ```
 
 Each `Difference` contains:
-
 - the JSON path where the difference was detected
 - the `DifferenceType`
 - the expected `DifferenceValue`
@@ -460,7 +533,6 @@ Differences are displayed in traversal order, with the JSON path as the first co
 
 ```text
 JSON differs (3 differences):
-
 +----------+------------------+-----------+-----------+
 | PATH     | TYPE             | EXPECTED  | ACTUAL    |
 +----------+------------------+-----------+-----------+
@@ -483,7 +555,6 @@ The difference type becomes the first column:
 
 ```text
 JSON differs (4 differences):
-
 +------------------+----------+-----------+-----------+
 | TYPE             | PATH     | EXPECTED  | ACTUAL    |
 +------------------+----------+-----------+-----------+
