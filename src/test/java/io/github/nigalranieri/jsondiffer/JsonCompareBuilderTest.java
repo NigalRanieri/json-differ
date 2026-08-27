@@ -106,10 +106,148 @@ class JsonCompareBuilderTest {
             .ignorePath("$.ignored")
             .ignoreArrayOrder("$.unordered")
             .numericTolerance(0.01)
-            .treatNullAndMissingAsEqual();
+            .treatNullAndMissingAsEqual()
+            .ignoreCase("$.name");
 
     JsonComparator comparator = builder.build();
 
-    // Any subsequent builder mutation must not alter comparator.
+    builder
+        .ignorePath("$.otherIgnored")
+        .ignoreArrayOrder("$.otherUnordered")
+        .numericTolerance(10.0)
+        .treatNullAndMissingAsEqual("$.otherOptional")
+        .ignoreCase("$.city");
+
+    ComparisonResult result =
+        comparator.compare(
+            "{"
+                + "\"ignored\":1,"
+                + "\"unordered\":[1,2],"
+                + "\"price\":10.0,"
+                + "\"optional\":null,"
+                + "\"name\":\"Alice\","
+                + "\"city\":\"Milan\""
+                + "}",
+            "{"
+                + "\"ignored\":999,"
+                + "\"unordered\":[2,1],"
+                + "\"price\":10.5,"
+                + "\"name\":\"alice\","
+                + "\"city\":\"milan\""
+                + "}");
+
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void builtComparatorKeepsPathSpecificNumericToleranceSnapshot() {
+    JsonCompareBuilder builder = JsonCompare.builder().numericTolerance("$.price", 0.1);
+
+    JsonComparator comparator = builder.build();
+
+    builder.numericTolerance("$.price", 10.0);
+
+    ComparisonResult result = comparator.compare("{\"price\":10.0}", "{\"price\":10.5}");
+
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void builtComparatorKeepsPathSpecificNullAndMissingSnapshot() {
+    JsonCompareBuilder builder = JsonCompare.builder().treatNullAndMissingAsEqual("$.optional");
+
+    JsonComparator comparator = builder.build();
+
+    builder.treatNullAndMissingAsEqual("$.other");
+
+    ComparisonResult result = comparator.compare("{\"other\":null}", "{}");
+
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void builtComparatorKeepsPathSpecificIgnoreCaseSnapshot() {
+    JsonCompareBuilder builder = JsonCompare.builder().ignoreCase("$.name");
+
+    JsonComparator comparator = builder.build();
+
+    builder.ignoreCase("$.city");
+
+    ComparisonResult result = comparator.compare("{\"city\":\"Milan\"}", "{\"city\":\"milan\"}");
+
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void builtComparatorRetainsConfiguredPathSpecificRules() {
+    JsonComparator comparator =
+        JsonCompare.builder()
+            .numericTolerance("$.price", 0.1)
+            .treatNullAndMissingAsEqual("$.optional")
+            .ignoreCase("$.name")
+            .build();
+
+    ComparisonResult result =
+        comparator.compare(
+            "{\"price\":10.0,\"optional\":null,\"name\":\"Alice\"}",
+            "{\"price\":10.05,\"name\":\"alice\"}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void rejectsInvalidPathForNumericTolerance() {
+    assertThrows(
+        IllegalArgumentException.class, () -> JsonCompare.builder().numericTolerance("price", 0.1));
+  }
+
+  @Test
+  void rejectsInvalidPathForNullAndMissingEquivalence() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> JsonCompare.builder().treatNullAndMissingAsEqual("optional"));
+  }
+
+  @Test
+  void rejectsInvalidPathForIgnoreCase() {
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.builder().ignoreCase("name"));
+  }
+
+  @Test
+  void rejectsNullPathForNumericTolerance() {
+    assertThrows(
+        NullPointerException.class, () -> JsonCompare.builder().numericTolerance(null, 0.1));
+  }
+
+  @Test
+  void rejectsNullPathForNullAndMissingEquivalence() {
+    assertThrows(
+        NullPointerException.class, () -> JsonCompare.builder().treatNullAndMissingAsEqual(null));
+  }
+
+  @Test
+  void rejectsNullPathForIgnoreCase() {
+    assertThrows(NullPointerException.class, () -> JsonCompare.builder().ignoreCase(null));
+  }
+
+  @Test
+  void rejectsNegativePathSpecificNumericTolerance() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> JsonCompare.builder().numericTolerance("$.price", -0.1));
+  }
+
+  @Test
+  void rejectsNaNPathSpecificNumericTolerance() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> JsonCompare.builder().numericTolerance("$.price", Double.NaN));
+  }
+
+  @Test
+  void rejectsInfinitePathSpecificNumericTolerance() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> JsonCompare.builder().numericTolerance("$.price", Double.POSITIVE_INFINITY));
   }
 }
