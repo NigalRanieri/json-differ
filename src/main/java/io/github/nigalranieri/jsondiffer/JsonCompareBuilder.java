@@ -1,10 +1,13 @@
 package io.github.nigalranieri.jsondiffer;
 
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
+import io.github.nigalranieri.jsondiffer.internal.PathTolerance;
 import io.github.nigalranieri.jsondiffer.internal.path.PathValidator;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -15,6 +18,12 @@ import java.util.Set;
  * #build()}.
  *
  * <p>All comparison options are disabled by default, resulting in strict structural comparison.
+ *
+ * <p>Path-specific comparison rules support the same path syntax as {@link #ignorePath(String)},
+ * including {@code *}, {@code [*]}, and recursive {@code **} wildcards.
+ *
+ * <p>Global boolean comparison options remain enabled at every path. Path-specific boolean options
+ * add additional matching paths; they do not disable a globally enabled option.
  */
 public final class JsonCompareBuilder {
 
@@ -23,6 +32,10 @@ public final class JsonCompareBuilder {
   private boolean treatNullAndMissingAsEqual;
   private Double numericTolerance;
   private final Set<String> unorderedArrayPaths = new HashSet<>();
+  private final List<PathTolerance> pathNumericTolerances = new ArrayList<>();
+  private final Set<String> nullAndMissingEqualPaths = new HashSet<>();
+  private boolean ignoreCase;
+  private final Set<String> ignoreCasePaths = new HashSet<>();
 
   JsonCompareBuilder() {}
 
@@ -62,7 +75,8 @@ public final class JsonCompareBuilder {
    * Configures arrays matching the specified path to be compared without considering element order.
    *
    * <p>Arrays at other paths remain order-sensitive unless global unordered-array comparison is
-   * enabled through {@link #ignoreArrayOrder()}.
+   * enabled through {@link #ignoreArrayOrder()}. A path-specific rule does not disable globally
+   * enabled unordered-array comparison.
    *
    * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
    *
@@ -92,6 +106,30 @@ public final class JsonCompareBuilder {
   }
 
   /**
+   * Treats a JSON property whose value is {@code null} as equivalent to the same property being
+   * absent when the property path matches the specified path or path pattern.
+   *
+   * <p>Properties at other paths remain strict unless global null/missing equivalence is enabled
+   * through {@link #treatNullAndMissingAsEqual()}. A path-specific rule does not disable globally
+   * enabled null/missing equivalence.
+   *
+   * <p>This option applies to object properties. It does not make JSON {@code null} equivalent to
+   * arbitrary non-null values.
+   *
+   * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
+   *
+   * @param path the path or path pattern where null and missing should be treated as equal
+   * @return this builder
+   * @throws NullPointerException if {@code path} is {@code null}
+   * @throws IllegalArgumentException if {@code path} is invalid
+   */
+  public JsonCompareBuilder treatNullAndMissingAsEqual(String path) {
+    PathValidator.validate(path);
+    nullAndMissingEqualPaths.add(path);
+    return this;
+  }
+
+  /**
    * Configures the maximum allowed absolute difference between numeric values for them to be
    * considered equal.
    *
@@ -112,6 +150,75 @@ public final class JsonCompareBuilder {
     }
 
     this.numericTolerance = tolerance;
+    return this;
+  }
+
+  /**
+   * Configures the maximum allowed absolute difference between numeric values at the specified JSON
+   * path for them to be considered equal.
+   *
+   * <p>A matching path-specific tolerance takes precedence over the global tolerance configured
+   * through {@link #numericTolerance(double)}. If multiple path-specific tolerance rules match the
+   * same path, the last configured matching tolerance is used.
+   *
+   * <p>The tolerance is inclusive. Numeric values are considered equal when their absolute
+   * difference is less than or equal to the configured tolerance.
+   *
+   * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
+   *
+   * @param path the path or path pattern where the tolerance should apply
+   * @param tolerance the non-negative finite numeric tolerance
+   * @return this builder
+   * @throws NullPointerException if {@code path} is {@code null}
+   * @throws IllegalArgumentException if {@code path} is invalid
+   * @throws IllegalArgumentException if {@code tolerance} is negative, NaN, or infinite
+   */
+  public JsonCompareBuilder numericTolerance(String path, double tolerance) {
+    PathValidator.validate(path);
+
+    if (Double.isNaN(tolerance) || Double.isInfinite(tolerance)) {
+      throw new IllegalArgumentException("Numeric tolerance must be finite");
+    }
+
+    if (tolerance < 0) {
+      throw new IllegalArgumentException("Numeric tolerance cannot be negative");
+    }
+
+    pathNumericTolerances.add(new PathTolerance(path, tolerance));
+    return this;
+  }
+
+  /**
+   * Configures string values to be compared without considering case.
+   *
+   * <p>This option applies only to string values. Object field names remain case-sensitive.
+   *
+   * @return this builder
+   */
+  public JsonCompareBuilder ignoreCase() {
+    this.ignoreCase = true;
+    return this;
+  }
+
+  /**
+   * Configures string values matching the specified path to be compared without considering case.
+   *
+   * <p>String values at other paths remain case-sensitive unless global case-insensitive comparison
+   * is enabled through {@link #ignoreCase()}. A path-specific rule does not disable globally
+   * enabled case-insensitive comparison.
+   *
+   * <p>This option applies only to string values. Object field names remain case-sensitive.
+   *
+   * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
+   *
+   * @param path the path or path pattern where string case should be ignored
+   * @return this builder
+   * @throws NullPointerException if {@code path} is {@code null}
+   * @throws IllegalArgumentException if {@code path} is invalid
+   */
+  public JsonCompareBuilder ignoreCase(String path) {
+    PathValidator.validate(path);
+    ignoreCasePaths.add(path);
     return this;
   }
 
@@ -153,6 +260,10 @@ public final class JsonCompareBuilder {
             ignoredPaths,
             treatNullAndMissingAsEqual,
             numericTolerance,
-            unorderedArrayPaths));
+            unorderedArrayPaths,
+            pathNumericTolerances,
+            nullAndMissingEqualPaths,
+            ignoreCase,
+            ignoreCasePaths));
   }
 }

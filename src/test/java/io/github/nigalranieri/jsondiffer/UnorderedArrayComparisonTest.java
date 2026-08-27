@@ -161,4 +161,104 @@ class UnorderedArrayComparisonTest {
     assertEquals("$.scores[0]", result.getDifferences().get(0).getPath());
     assertEquals("$.scores[2]", result.getDifferences().get(1).getPath());
   }
+
+  @Test
+  void unorderedArrayComparisonRespectsNumericTolerance() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .numericTolerance("$.values[*]", 0.1)
+            .compare("{\"values\":[10.0,20.0,30.0]}", "{\"values\":[30.05,10.05,20.05]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void unorderedArrayComparisonRespectsIgnoreCase() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .ignoreCase("$.values[*]")
+            .compare(
+                "{\"values\":[\"Alice\",\"Bob\",\"Charlie\"]}",
+                "{\"values\":[\"charlie\",\"alice\",\"BOB\"]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void numericToleranceInsideUnorderedArrayDoesNotApplyOutsideConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .numericTolerance("$.values[*]", 0.1)
+            .compare(
+                "{\"values\":[10.0,20.0],\"other\":5.0}",
+                "{\"values\":[20.05,10.05],\"other\":5.05}");
+
+    assertFalse(result.isEqual());
+    assertEquals("$.other", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void ignoreCaseInsideUnorderedArrayDoesNotApplyOutsideConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.values")
+            .ignoreCase("$.values[*]")
+            .compare(
+                "{\"values\":[\"Alice\",\"Bob\"],\"other\":\"Hello\"}",
+                "{\"values\":[\"bob\",\"alice\"],\"other\":\"hello\"}");
+
+    assertFalse(result.isEqual());
+    assertEquals("$.other", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void unorderedArrayComparisonRespectsNullAndMissingEquivalence() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.users")
+            .treatNullAndMissingAsEqual("$.users[*].nickname")
+            .compare(
+                "{\"users\":[{\"id\":1,\"nickname\":null},{\"id\":2,\"nickname\":\"Bob\"}]}",
+                "{\"users\":[{\"id\":2,\"nickname\":\"Bob\"},{\"id\":1}]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void nullAndMissingEquivalenceInsideUnorderedArrayDoesNotApplyOutsideConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.users")
+            .treatNullAndMissingAsEqual("$.users[*].nickname")
+            .compare(
+                "{\"users\":[{\"id\":1,\"nickname\":null}],\"other\":null}",
+                "{\"users\":[{\"id\":1}]}");
+
+    assertFalse(result.isEqual());
+    assertEquals("$.other", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void unorderedArrayComparisonCanMatchObjectsUsingNullAndMissingEquivalence() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.users")
+            .treatNullAndMissingAsEqual("$.users[*].nickname")
+            .compare(
+                "{\"users\":["
+                    + "{\"id\":1,\"nickname\":null},"
+                    + "{\"id\":2,\"nickname\":\"Bob\"},"
+                    + "{\"id\":3,\"nickname\":null}"
+                    + "]}",
+                "{\"users\":["
+                    + "{\"id\":3},"
+                    + "{\"id\":1},"
+                    + "{\"id\":2,\"nickname\":\"Bob\"}"
+                    + "]}");
+
+    assertTrue(result.isEqual());
+  }
 }

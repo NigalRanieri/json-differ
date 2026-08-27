@@ -55,6 +55,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
@@ -96,6 +102,7 @@
                 Optional local auto-formatting.
                 Uncomment to run Spotless apply automatically during process-sources.
 
+
                 <executions>
                     <execution>
                         <id>spotless-apply</id>
@@ -105,7 +112,8 @@
                         </goals>
                     </execution>
                 </executions>
-                -->
+                 -->
+
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

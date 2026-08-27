@@ -16,7 +16,7 @@ import java.util.*;
 public final class ComparisonResult {
 
   private final List<Difference> differences;
-  private static final int MAX_CELL_WIDTH = 40;
+  private static final int DEFAULT_MAX_CELL_WIDTH = 40;
 
   /**
    * Creates a comparison result from the supplied differences.
@@ -91,17 +91,39 @@ public final class ComparisonResult {
    * @throws NullPointerException if {@code format} is {@code null}
    */
   public String format(ComparisonResultFormat format) {
+    return format(format, DEFAULT_MAX_CELL_WIDTH);
+  }
+
+  /**
+   * Formats this result using the requested presentation mode and maximum table cell width.
+   *
+   * <p>Traversal format preserves the original difference order and places the JSON path first.
+   * Grouped format groups differences by type and places the difference type first.
+   *
+   * <p>Long cell values are wrapped across multiple table lines rather than truncated.
+   *
+   * @param format the desired result format
+   * @param maxCellWidth the maximum width of each table cell; must be greater than zero
+   * @return a human-readable representation of this comparison result
+   * @throws NullPointerException if {@code format} is {@code null}
+   * @throws IllegalArgumentException if {@code maxCellWidth} is not greater than zero
+   */
+  public String format(ComparisonResultFormat format, int maxCellWidth) {
     Objects.requireNonNull(format, "format");
+
+    if (maxCellWidth <= 0) {
+      throw new IllegalArgumentException("Maximum cell width must be greater than zero");
+    }
 
     if (isEqual()) {
       return "JSON is equal";
     }
 
     if (format == ComparisonResultFormat.GROUPED) {
-      return formatGrouped();
+      return formatGrouped(maxCellWidth);
     }
 
-    return formatTraversal();
+    return formatTraversal(maxCellWidth);
   }
 
   /**
@@ -114,7 +136,7 @@ public final class ComparisonResult {
     return format(ComparisonResultFormat.TRAVERSAL);
   }
 
-  private String formatTraversal() {
+  private String formatTraversal(int maxCellWidth) {
     List<String> headers = Arrays.asList("PATH", "TYPE", "EXPECTED", "ACTUAL");
 
     List<List<String>> rows = new ArrayList<>();
@@ -131,14 +153,14 @@ public final class ComparisonResult {
     return formatSummary()
         + System.lineSeparator()
         + System.lineSeparator()
-        + TableFormatter.format(headers, rows, MAX_CELL_WIDTH);
+        + TableFormatter.format(headers, rows, maxCellWidth);
   }
 
   private String formatSummary() {
     return "JSON differs (" + differences.size() + " differences):";
   }
 
-  private String formatGrouped() {
+  private String formatGrouped(int maxCellWidth) {
     Map<DifferenceType, List<Difference>> grouped = new LinkedHashMap<>();
 
     for (Difference difference : differences) {
@@ -170,6 +192,6 @@ public final class ComparisonResult {
     return formatSummary()
         + System.lineSeparator()
         + System.lineSeparator()
-        + TableFormatter.format(headers, rows, MAX_CELL_WIDTH);
+        + TableFormatter.format(headers, rows, maxCellWidth);
   }
 }

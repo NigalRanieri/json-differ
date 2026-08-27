@@ -241,4 +241,48 @@ class ComparisonResultTest {
 
     assertEquals(expectedOutput, result.toString());
   }
+
+  @Test
+  void shouldFormatTraversalWithCustomMaximumCellWidth() {
+    Difference difference =
+        new Difference(
+            "$.very.long.property.path",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "a very long expected value"),
+            DifferenceValue.of(DifferenceValueType.STRING, "a very long actual value"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(difference));
+
+    String formatted = result.format(ComparisonResultFormat.TRAVERSAL, 10);
+
+    assertTrue(formatted.contains("$.very.lon"));
+    assertTrue(formatted.contains("g.property"));
+  }
+
+  @Test
+  void existingFormatMethodShouldUseDefaultMaximumCellWidth() {
+    Difference difference =
+        new Difference(
+            "$.path",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "expected"),
+            DifferenceValue.of(DifferenceValueType.STRING, "actual"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(difference));
+
+    assertEquals(
+        result.format(ComparisonResultFormat.TRAVERSAL, 40),
+        result.format(ComparisonResultFormat.TRAVERSAL));
+  }
+
+  @Test
+  void shouldRejectNonPositiveMaximumCellWidth() {
+    ComparisonResult result = new ComparisonResult(Collections.<Difference>emptyList());
+
+    assertThrows(
+        IllegalArgumentException.class, () -> result.format(ComparisonResultFormat.TRAVERSAL, 0));
+
+    assertThrows(
+        IllegalArgumentException.class, () -> result.format(ComparisonResultFormat.TRAVERSAL, -1));
+  }
 }

@@ -1,6 +1,11 @@
 :root {
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+    font-family:
+            Inter,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
 
     --bg: #0f1115;
     --surface: #171a21;
@@ -17,10 +22,7 @@
     --accent-hover: #91abff;
     --accent-text: #0b1020;
 
-    --success: #7ee787;
     --error: #ff9b9b;
-    --warning: #f5c26b;
-
     --result-bg: #0b0d11;
     --result-text: #f8fafc;
 
@@ -43,10 +45,7 @@
     --accent-hover: #244ed8;
     --accent-text: #ffffff;
 
-    --success: #19733b;
     --error: #b42318;
-    --warning: #9a6700;
-
     --result-bg: #151922;
     --result-text: #f8fafc;
 
@@ -66,7 +65,9 @@ body {
     min-height: 100vh;
     background: var(--bg);
     color: var(--text);
-    transition: background-color 160ms ease, color 160ms ease;
+    transition:
+            background-color 160ms ease,
+            color 160ms ease;
 }
 
 button,
@@ -119,10 +120,9 @@ h1 {
 .workspace {
     display: grid;
     grid-template-columns:
-    minmax(220px, 0.55fr)
-    minmax(0, 1fr)
-    minmax(0, 1fr)
-    minmax(220px, 0.55fr);
+        minmax(0, 1fr)
+        minmax(0, 1fr)
+        minmax(280px, 0.75fr);
     gap: 16px;
     align-items: stretch;
 }
@@ -133,8 +133,10 @@ h1 {
     border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: var(--shadow);
-    transition: border-color 140ms ease, background-color 160ms ease,
-    box-shadow 160ms ease;
+    transition:
+            border-color 140ms ease,
+            background-color 160ms ease,
+            box-shadow 160ms ease;
 }
 
 .card-header {
@@ -155,6 +157,14 @@ h1 {
     font-weight: 800;
     letter-spacing: 0.085em;
     text-transform: uppercase;
+}
+
+.card-subtitle {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.2;
 }
 
 .editor-card {
@@ -183,17 +193,34 @@ textarea {
     padding: 16px;
 }
 
+.config-card {
+    overflow: visible;
+}
+
+.config-card > textarea {
+    min-height: 390px;
+    border-radius: 0 0 14px 14px;
+}
+
 textarea::placeholder,
 input::placeholder {
     color: var(--muted);
-    opacity: 0.75;
+    opacity: 0.72;
+}
+
+.editor-card > textarea:focus {
+    box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 button {
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 120ms ease, color 120ms ease,
-    border-color 120ms ease, transform 120ms ease, opacity 120ms ease;
+    transition:
+            background-color 120ms ease,
+            color 120ms ease,
+            border-color 120ms ease,
+            transform 120ms ease,
+            opacity 120ms ease;
 }
 
 button:hover:not(:disabled) {
@@ -237,121 +264,24 @@ button:disabled {
     border-color: var(--border-strong);
 }
 
-.behavior-card,
-.paths-card {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-}
-
-.side-panel-content {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 14px;
-    padding: 14px;
-}
-
-.option-row,
-.option-field {
-    min-width: 0;
-}
-
-.option-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 9px;
-    padding: 10px;
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-}
-
-.option-row input[type="checkbox"] {
-    flex: 0 0 auto;
-    width: 16px;
-    height: 16px;
-    margin-top: 2px;
-    accent-color: var(--accent);
-}
-
-.option-row span {
-    line-height: 1.35;
-}
-
-.option-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    color: var(--text);
-}
-
-.option-field > span,
-.option-field legend {
-    color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.option-field small {
-    color: var(--muted);
-    font-size: 0.71rem;
-    line-height: 1.35;
-}
-
-.option-field input[type="number"] {
-    width: 100%;
-    min-height: 38px;
-    padding: 8px 10px;
-    outline: none;
-    background: var(--surface-soft);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-}
-
-.option-field textarea {
-    min-height: 104px;
-    padding: 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    resize: vertical;
-}
-
-.option-field input:focus,
-.option-field textarea:focus,
-.editor-card > textarea:focus {
-    box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.option-field input:disabled,
-.option-field textarea:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-}
-
-fieldset.option-field {
-    margin: 0;
-    padding: 10px;
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-}
-
-fieldset.option-field label {
-    display: flex;
+.header-link {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 7px;
-    font-size: 0.85rem;
+    padding: 8px 11px;
+    color: var(--text);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-hover);
+    transition:
+            background-color 120ms ease,
+            border-color 120ms ease,
+            transform 120ms ease;
 }
 
-fieldset.option-field input[type="radio"] {
-    accent-color: var(--accent);
-}
-
-.result-format {
-    margin-top: auto;
+.header-link:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
 }
 
 .actions {
@@ -407,64 +337,125 @@ fieldset.option-field input[type="radio"] {
     color: var(--muted);
     text-align: center;
     font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.footer-separator {
+    padding: 0 4px;
 }
 
 .drag-over {
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent),
-    var(--shadow);
+    box-shadow:
+            0 0 0 2px rgba(124, 156, 255, 0.22),
+            var(--shadow);
 }
 
 .drag-over textarea {
-    background: color-mix(in srgb, var(--accent) 6%, var(--surface-soft));
-}
-
-.header-link {
-    display: inline-flex;
-    align-items: center;
-    padding: 8px 11px;
-    color: var(--text);
-    text-decoration: none;
-    border: 1px solid var(--border);
-    border-radius: 8px;
     background: var(--surface-hover);
-    transition: background-color 120ms ease, border-color 120ms ease,
-    transform 120ms ease;
 }
 
-.header-link:hover {
+.config-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-wrapper {
+    position: relative;
+}
+
+.info-button {
+    display: inline-grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface-hover);
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.info-button:hover {
+    color: var(--text);
     border-color: var(--border-strong);
-    transform: translateY(-1px);
 }
 
-@media (max-width: 1300px) {
+.config-info-popover {
+    position: absolute;
+    z-index: 100;
+    top: calc(100% + 10px);
+    right: 0;
+    left: auto;
+
+    width: 460px;
+    max-width: calc(100vw - 32px);
+
+    padding: 18px 20px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    box-shadow: var(--shadow);
+
+    font-size: 0.84rem;
+    line-height: 1.55;
+
+    white-space: normal;
+}
+
+.config-info-popover p {
+    margin: 8px 0 12px;
+}
+
+.config-info-popover ul {
+    margin: 8px 0 14px;
+    padding-left: 22px;
+}
+
+.config-info-popover li {
+    margin: 6px 0;
+}
+
+.config-info-popover strong {
+    color: var(--text);
+}
+
+.config-info-popover code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--surface-soft);
+    font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 0.8rem;
+}
+
+.config-info-note {
+    margin-bottom: 0 !important;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+}
+
+@media (max-width: 1150px) {
     .workspace {
         grid-template-columns:
-      minmax(0, 1fr)
-      minmax(0, 1fr);
+            minmax(0, 1fr)
+            minmax(0, 1fr);
     }
 
-    .behavior-card {
-        order: 3;
+    .config-card {
+        grid-column: 1 / -1;
     }
 
-    .paths-card {
-        order: 4;
-    }
-
-    .behavior-card,
-    .paths-card {
-        min-height: auto;
-    }
-
-    .side-panel-content {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: start;
-    }
-
-    .result-format {
-        margin-top: 0;
+    .config-card > textarea {
+        min-height: 260px;
     }
 }
 
@@ -487,12 +478,13 @@ fieldset.option-field input[type="radio"] {
         grid-template-columns: 1fr;
     }
 
-    .editor-card > textarea {
-        min-height: 280px;
+    .config-card {
+        grid-column: auto;
     }
 
-    .side-panel-content {
-        display: flex;
+    .editor-card > textarea,
+    .config-card > textarea {
+        min-height: 280px;
     }
 }
 
@@ -512,6 +504,7 @@ fieldset.option-field input[type="radio"] {
 
     .header-actions {
         justify-content: space-between;
+        flex-wrap: wrap;
     }
 
     .secondary-button {

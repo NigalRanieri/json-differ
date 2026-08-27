@@ -3,6 +3,7 @@ package io.github.nigalranieri.jsondiffer.internal.comparison;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
 import io.github.nigalranieri.jsondiffer.result.*;
+import java.math.BigDecimal;
 import java.util.*;
 
 public final class ComparisonEngine {
@@ -33,11 +34,23 @@ public final class ComparisonEngine {
       return;
     }
 
-    if (expected.isNumber() && actual.isNumber() && options.hasNumericTolerance()) {
+    if (expected.isNumber() && actual.isNumber()) {
+      Double tolerance = options.getNumericTolerance(path);
 
-      double difference = Math.abs(expected.doubleValue() - actual.doubleValue());
+      if (tolerance != null) {
+        BigDecimal expectedValue = expected.decimalValue();
+        BigDecimal actualValue = actual.decimalValue();
+        BigDecimal difference = expectedValue.subtract(actualValue).abs();
+        BigDecimal allowedTolerance = BigDecimal.valueOf(tolerance);
 
-      if (difference <= options.getNumericTolerance()) {
+        if (difference.compareTo(allowedTolerance) <= 0) {
+          return;
+        }
+      }
+    }
+
+    if (expected.isTextual() && actual.isTextual() && options.shouldIgnoreCase(path)) {
+      if (expected.textValue().equalsIgnoreCase(actual.textValue())) {
         return;
       }
     }
@@ -140,7 +153,7 @@ public final class ComparisonEngine {
       }
 
       if (!actual.has(fieldName)) {
-        if (options.isTreatNullAndMissingAsEqual() && field.getValue().isNull()) {
+        if (options.shouldTreatNullAndMissingAsEqual(fieldPath) && field.getValue().isNull()) {
           continue;
         }
 
@@ -168,7 +181,7 @@ public final class ComparisonEngine {
       }
 
       if (!expected.has(fieldName)) {
-        if (options.isTreatNullAndMissingAsEqual() && field.getValue().isNull()) {
+        if (options.shouldTreatNullAndMissingAsEqual(fieldPath) && field.getValue().isNull()) {
           continue;
         }
 
@@ -233,33 +246,35 @@ public final class ComparisonEngine {
     boolean[] expectedMatched = new boolean[expected.size()];
     boolean[] actualMatched = new boolean[actual.size()];
 
-    matchExactElements(expected, actual, expectedMatched, actualMatched);
+    matchExactElements(path, expected, actual, expectedMatched, actualMatched);
 
     matchSimilarElements(path, expected, actual, expectedMatched, actualMatched, differences);
 
     addUnmatchedElements(path, expected, actual, expectedMatched, actualMatched, differences);
   }
 
-  private boolean nodesAreEqual(JsonNode expected, JsonNode actual) {
-
+  private boolean nodesAreEqual(String path, JsonNode expected, JsonNode actual) {
     List<Difference> differences = new ArrayList<>();
-
-    compareNodes("$", expected, actual, differences);
-
+    compareNodes(path, expected, actual, differences);
     return differences.isEmpty();
   }
 
   private void matchExactElements(
-      JsonNode expected, JsonNode actual, boolean[] expectedMatched, boolean[] actualMatched) {
+      String path,
+      JsonNode expected,
+      JsonNode actual,
+      boolean[] expectedMatched,
+      boolean[] actualMatched) {
 
     for (int i = 0; i < expected.size(); i++) {
-      for (int j = 0; j < actual.size(); j++) {
+      String elementPath = path + "[" + i + "]";
 
+      for (int j = 0; j < actual.size(); j++) {
         if (actualMatched[j]) {
           continue;
         }
 
-        if (nodesAreEqual(expected.get(i), actual.get(j))) {
+        if (nodesAreEqual(elementPath, expected.get(i), actual.get(j))) {
           expectedMatched[i] = true;
           actualMatched[j] = true;
           break;
