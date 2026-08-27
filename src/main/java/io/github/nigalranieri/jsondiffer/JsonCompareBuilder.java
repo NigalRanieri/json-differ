@@ -1,10 +1,13 @@
 package io.github.nigalranieri.jsondiffer;
 
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
+import io.github.nigalranieri.jsondiffer.internal.PathTolerance;
 import io.github.nigalranieri.jsondiffer.internal.path.PathValidator;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,6 +26,7 @@ public final class JsonCompareBuilder {
   private boolean treatNullAndMissingAsEqual;
   private Double numericTolerance;
   private final Set<String> unorderedArrayPaths = new HashSet<>();
+  private final List<PathTolerance> pathNumericTolerances = new ArrayList<>();
 
   JsonCompareBuilder() {}
 
@@ -116,6 +120,33 @@ public final class JsonCompareBuilder {
   }
 
   /**
+   * Configures the maximum allowed absolute difference between numeric values at the specified JSON
+   * path for them to be considered equal.
+   *
+   * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
+   *
+   * @param path the path or path pattern where the tolerance should apply
+   * @param tolerance the non-negative finite numeric tolerance
+   * @return this builder
+   * @throws NullPointerException if {@code path} is {@code null}
+   * @throws IllegalArgumentException if {@code path} is invalid
+   * @throws IllegalArgumentException if {@code tolerance} is negative, NaN, or infinite
+   */
+  public JsonCompareBuilder numericTolerance(String path, double tolerance) {
+    PathValidator.validate(path);
+
+    if (Double.isNaN(tolerance) || Double.isInfinite(tolerance)) {
+      throw new IllegalArgumentException("Numeric tolerance must be finite");
+    }
+    if (tolerance < 0) {
+      throw new IllegalArgumentException("Numeric tolerance cannot be negative");
+    }
+
+    pathNumericTolerances.add(new PathTolerance(path, tolerance));
+    return this;
+  }
+
+  /**
    * Compares two JSON documents using the options configured on this builder.
    *
    * @param expected the expected JSON document
@@ -153,6 +184,7 @@ public final class JsonCompareBuilder {
             ignoredPaths,
             treatNullAndMissingAsEqual,
             numericTolerance,
-            unorderedArrayPaths));
+            unorderedArrayPaths,
+            pathNumericTolerances));
   }
 }

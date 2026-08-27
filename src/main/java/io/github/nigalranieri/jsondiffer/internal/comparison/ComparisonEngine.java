@@ -3,6 +3,7 @@ package io.github.nigalranieri.jsondiffer.internal.comparison;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
 import io.github.nigalranieri.jsondiffer.result.*;
+import java.math.BigDecimal;
 import java.util.*;
 
 public final class ComparisonEngine {
@@ -33,12 +34,18 @@ public final class ComparisonEngine {
       return;
     }
 
-    if (expected.isNumber() && actual.isNumber() && options.hasNumericTolerance()) {
+    if (expected.isNumber() && actual.isNumber()) {
+      Double tolerance = options.getNumericTolerance(path);
 
-      double difference = Math.abs(expected.doubleValue() - actual.doubleValue());
+      if (tolerance != null) {
+        BigDecimal expectedValue = expected.decimalValue();
+        BigDecimal actualValue = actual.decimalValue();
+        BigDecimal difference = expectedValue.subtract(actualValue).abs();
+        BigDecimal allowedTolerance = BigDecimal.valueOf(tolerance);
 
-      if (difference <= options.getNumericTolerance()) {
-        return;
+        if (difference.compareTo(allowedTolerance) <= 0) {
+          return;
+        }
       }
     }
 
