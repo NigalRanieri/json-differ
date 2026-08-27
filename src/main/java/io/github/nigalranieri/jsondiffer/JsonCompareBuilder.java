@@ -18,6 +18,12 @@ import java.util.Set;
  * #build()}.
  *
  * <p>All comparison options are disabled by default, resulting in strict structural comparison.
+ *
+ * <p>Path-specific comparison rules support the same path syntax as {@link #ignorePath(String)},
+ * including {@code *}, {@code [*]}, and recursive {@code **} wildcards.
+ *
+ * <p>Global boolean comparison options remain enabled at every path. Path-specific boolean options
+ * add additional matching paths; they do not disable a globally enabled option.
  */
 public final class JsonCompareBuilder {
 
@@ -69,7 +75,8 @@ public final class JsonCompareBuilder {
    * Configures arrays matching the specified path to be compared without considering element order.
    *
    * <p>Arrays at other paths remain order-sensitive unless global unordered-array comparison is
-   * enabled through {@link #ignoreArrayOrder()}.
+   * enabled through {@link #ignoreArrayOrder()}. A path-specific rule does not disable globally
+   * enabled unordered-array comparison.
    *
    * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
    *
@@ -103,7 +110,11 @@ public final class JsonCompareBuilder {
    * absent when the property path matches the specified path or path pattern.
    *
    * <p>Properties at other paths remain strict unless global null/missing equivalence is enabled
-   * through {@link #treatNullAndMissingAsEqual()}.
+   * through {@link #treatNullAndMissingAsEqual()}. A path-specific rule does not disable globally
+   * enabled null/missing equivalence.
+   *
+   * <p>This option applies to object properties. It does not make JSON {@code null} equivalent to
+   * arbitrary non-null values.
    *
    * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
    *
@@ -146,6 +157,13 @@ public final class JsonCompareBuilder {
    * Configures the maximum allowed absolute difference between numeric values at the specified JSON
    * path for them to be considered equal.
    *
+   * <p>A matching path-specific tolerance takes precedence over the global tolerance configured
+   * through {@link #numericTolerance(double)}. If multiple path-specific tolerance rules match the
+   * same path, the last configured matching tolerance is used.
+   *
+   * <p>The tolerance is inclusive. Numeric values are considered equal when their absolute
+   * difference is less than or equal to the configured tolerance.
+   *
    * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
    *
    * @param path the path or path pattern where the tolerance should apply
@@ -161,6 +179,7 @@ public final class JsonCompareBuilder {
     if (Double.isNaN(tolerance) || Double.isInfinite(tolerance)) {
       throw new IllegalArgumentException("Numeric tolerance must be finite");
     }
+
     if (tolerance < 0) {
       throw new IllegalArgumentException("Numeric tolerance cannot be negative");
     }
@@ -185,7 +204,8 @@ public final class JsonCompareBuilder {
    * Configures string values matching the specified path to be compared without considering case.
    *
    * <p>String values at other paths remain case-sensitive unless global case-insensitive comparison
-   * is enabled through {@link #ignoreCase()}.
+   * is enabled through {@link #ignoreCase()}. A path-specific rule does not disable globally
+   * enabled case-insensitive comparison.
    *
    * <p>This option applies only to string values. Object field names remain case-sensitive.
    *
