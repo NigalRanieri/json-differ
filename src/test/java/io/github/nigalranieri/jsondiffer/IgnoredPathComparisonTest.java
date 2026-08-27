@@ -206,4 +206,51 @@ class IgnoredPathComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void ignoredPathTakesPrecedenceOverNumericTolerance() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignorePath("$.price")
+            .numericTolerance("$.price", 0.01)
+            .compare("{\"price\":10.0}", "{\"price\":999.0}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void ignoredPathTakesPrecedenceOverIgnoreCase() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignorePath("$.name")
+            .ignoreCase("$.name")
+            .compare("{\"name\":\"Alice\"}", "{\"name\":\"COMPLETELY DIFFERENT\"}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void ignoredPathTakesPrecedenceOverNullAndMissingEquivalence() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignorePath("$.optional")
+            .treatNullAndMissingAsEqual("$.optional")
+            .compare("{\"optional\":\"value\"}", "{}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void ignoredWildcardPathStillOverridesOtherPathSpecificRules() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignorePath("$.users[*].value")
+            .numericTolerance("$.users[*].value", 0.1)
+            .ignoreCase("$.users[*].value")
+            .compare(
+                "{\"users\":[{\"value\":\"Alice\"},{\"value\":10.0}]}",
+                "{\"users\":[{\"value\":\"different\"},{\"value\":999.0}]}");
+
+    assertTrue(result.isEqual());
+  }
 }

@@ -238,4 +238,52 @@ class UnorderedArrayComparisonTest {
     assertFalse(result.isEqual());
     assertEquals("$.other", result.getDifferences().get(0).getPath());
   }
+
+  @Test
+  void unorderedArrayComparisonRespectsNullAndMissingEquivalence() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.users")
+            .treatNullAndMissingAsEqual("$.users[*].nickname")
+            .compare(
+                "{\"users\":[{\"id\":1,\"nickname\":null},{\"id\":2,\"nickname\":\"Bob\"}]}",
+                "{\"users\":[{\"id\":2,\"nickname\":\"Bob\"},{\"id\":1}]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void nullAndMissingEquivalenceInsideUnorderedArrayDoesNotApplyOutsideConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.users")
+            .treatNullAndMissingAsEqual("$.users[*].nickname")
+            .compare(
+                "{\"users\":[{\"id\":1,\"nickname\":null}],\"other\":null}",
+                "{\"users\":[{\"id\":1}]}");
+
+    assertFalse(result.isEqual());
+    assertEquals("$.other", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void unorderedArrayComparisonCanMatchObjectsUsingNullAndMissingEquivalence() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.users")
+            .treatNullAndMissingAsEqual("$.users[*].nickname")
+            .compare(
+                "{\"users\":["
+                    + "{\"id\":1,\"nickname\":null},"
+                    + "{\"id\":2,\"nickname\":\"Bob\"},"
+                    + "{\"id\":3,\"nickname\":null}"
+                    + "]}",
+                "{\"users\":["
+                    + "{\"id\":3},"
+                    + "{\"id\":1},"
+                    + "{\"id\":2,\"nickname\":\"Bob\"}"
+                    + "]}");
+
+    assertTrue(result.isEqual());
+  }
 }
