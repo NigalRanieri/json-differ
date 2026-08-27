@@ -27,6 +27,7 @@ public final class JsonCompareBuilder {
   private Double numericTolerance;
   private final Set<String> unorderedArrayPaths = new HashSet<>();
   private final List<PathTolerance> pathNumericTolerances = new ArrayList<>();
+  private final Set<String> nullAndMissingEqualPaths = new HashSet<>();
 
   JsonCompareBuilder() {}
 
@@ -92,6 +93,26 @@ public final class JsonCompareBuilder {
    */
   public JsonCompareBuilder treatNullAndMissingAsEqual() {
     this.treatNullAndMissingAsEqual = true;
+    return this;
+  }
+
+  /**
+   * Treats a JSON property whose value is {@code null} as equivalent to the same property being
+   * absent when the property path matches the specified path or path pattern.
+   *
+   * <p>Properties at other paths remain strict unless global null/missing equivalence is enabled
+   * through {@link #treatNullAndMissingAsEqual()}.
+   *
+   * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
+   *
+   * @param path the path or path pattern where null and missing should be treated as equal
+   * @return this builder
+   * @throws NullPointerException if {@code path} is {@code null}
+   * @throws IllegalArgumentException if {@code path} is invalid
+   */
+  public JsonCompareBuilder treatNullAndMissingAsEqual(String path) {
+    PathValidator.validate(path);
+    nullAndMissingEqualPaths.add(path);
     return this;
   }
 
@@ -185,6 +206,7 @@ public final class JsonCompareBuilder {
             treatNullAndMissingAsEqual,
             numericTolerance,
             unorderedArrayPaths,
-            pathNumericTolerances));
+            pathNumericTolerances,
+            nullAndMissingEqualPaths));
   }
 }

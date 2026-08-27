@@ -147,7 +147,7 @@ public final class ComparisonEngine {
       }
 
       if (!actual.has(fieldName)) {
-        if (options.isTreatNullAndMissingAsEqual() && field.getValue().isNull()) {
+        if (options.shouldTreatNullAndMissingAsEqual(fieldPath) && field.getValue().isNull()) {
           continue;
         }
 
@@ -175,7 +175,7 @@ public final class ComparisonEngine {
       }
 
       if (!expected.has(fieldName)) {
-        if (options.isTreatNullAndMissingAsEqual() && field.getValue().isNull()) {
+        if (options.shouldTreatNullAndMissingAsEqual(fieldPath) && field.getValue().isNull()) {
           continue;
         }
 

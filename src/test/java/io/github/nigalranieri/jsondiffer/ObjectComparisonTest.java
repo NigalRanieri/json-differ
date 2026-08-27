@@ -206,4 +206,86 @@ class ObjectComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void treatsNullAndMissingAsEqualAtConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual("$.optional")
+            .compare("{\"optional\":null,\"required\":\"value\"}", "{\"required\":\"value\"}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void doesNotTreatNullAndMissingAsEqualOutsideConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual("$.optional")
+            .compare("{\"optional\":null,\"other\":null}", "{\"other\":null}");
+
+    assertTrue(result.isEqual());
+
+    result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual("$.optional")
+            .compare("{\"optional\":null,\"other\":null}", "{\"optional\":null}");
+
+    assertFalse(result.isEqual());
+    assertEquals("$.other", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void treatsMissingExpectedAndActualNullAsEqualAtConfiguredPath() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual("$.optional")
+            .compare("{\"required\":\"value\"}", "{\"optional\":null,\"required\":\"value\"}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void treatsNullAndMissingAsEqualWithObjectWildcard() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual("$.optional.*")
+            .compare("{\"optional\":{\"first\":null,\"second\":null}}", "{\"optional\":{}}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void treatsNullAndMissingAsEqualWithArrayWildcard() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual("$.users[*].nickname")
+            .compare(
+                "{\"users\":[{\"nickname\":null},{\"nickname\":null}]}", "{\"users\":[{},{}]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void treatsNullAndMissingAsEqualWithRecursiveWildcard() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual("$.**.optional")
+            .compare(
+                "{\"a\":{\"optional\":null},\"b\":{\"nested\":{\"optional\":null}}}",
+                "{\"a\":{},\"b\":{\"nested\":{}}}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void globalNullAndMissingEquivalenceStillAppliesEverywhere() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual()
+            .treatNullAndMissingAsEqual("$.optional")
+            .compare("{\"optional\":null,\"other\":null}", "{}");
+
+    assertTrue(result.isEqual());
+  }
 }
