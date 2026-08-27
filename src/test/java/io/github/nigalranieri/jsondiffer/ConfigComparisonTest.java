@@ -45,4 +45,24 @@ public class ConfigComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void appliesYamlOutputConfiguration() throws IOException {
+    String yaml = "output:\n" + "  format: grouped\n" + "  columns:\n" + "    maxCellWidth: 10\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    ComparisonResult result =
+        JsonCompare.fromConfig(config)
+            .compare(
+                "{\"veryLongPropertyName\":\"expected value\"}",
+                "{\"veryLongPropertyName\":\"actual value\"}");
+
+    String formatted =
+        result.format(
+            config.getOutput().getFormat(), config.getOutput().getColumns().getMaxCellWidth());
+
+    assertTrue(formatted.contains("| TYPE"));
+    assertTrue(formatted.contains("| PATH"));
+  }
 }
