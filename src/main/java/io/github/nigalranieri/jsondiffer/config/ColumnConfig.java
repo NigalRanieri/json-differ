@@ -11,6 +11,15 @@ public final class ColumnConfig {
   }
 
   public void setMaxCellWidth(Integer maxCellWidth) {
-    this.maxCellWidth = maxCellWidth == null ? DEFAULT_MAX_CELL_WIDTH : maxCellWidth;
+    if (maxCellWidth == null) {
+      this.maxCellWidth = DEFAULT_MAX_CELL_WIDTH;
+      return;
+    }
+
+    if (maxCellWidth <= 0) {
+      throw new IllegalArgumentException("Maximum cell width must be greater than zero");
+    }
+
+    this.maxCellWidth = maxCellWidth;
   }
 }

@@ -146,4 +146,36 @@ public class JsonDifferConfigLoaderTest {
     assertTrue(config.getComparison().getNumericTolerance().getPaths().isEmpty());
     assertTrue(config.getComparison().getIgnoreCase().getPaths().isEmpty());
   }
+
+  @Test
+  void rejectsUnknownConfigurationProperties() {
+    String yaml = "comparison:\n" + "  ignoreCase:\n" + "    globaly: true\n";
+
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+  }
+
+  @Test
+  void rejectsMalformedYaml() {
+    String yaml =
+        "comparison:\n"
+            + "  ignorePaths:\n"
+            + "    - $.timestamp\n"
+            + "   invalid-indentation: true\n";
+
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+  }
+
+  @Test
+  void rejectsZeroMaximumCellWidth() {
+    String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: 0\n";
+
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+  }
+
+  @Test
+  void rejectsNegativeMaximumCellWidth() {
+    String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: -10\n";
+
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+  }
 }

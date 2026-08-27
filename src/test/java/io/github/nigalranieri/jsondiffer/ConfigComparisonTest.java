@@ -1,5 +1,6 @@
 package io.github.nigalranieri.jsondiffer;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfig;
@@ -88,5 +89,39 @@ public class ConfigComparisonTest {
     } finally {
       Files.deleteIfExists(configPath);
     }
+  }
+
+  @Test
+  void rejectsNullPathEntryFromConfiguration() throws IOException {
+    String yaml = "comparison:\n" + "  ignorePaths:\n" + "    - null\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    assertThrows(NullPointerException.class, () -> JsonCompare.fromConfig(config));
+  }
+
+  @Test
+  void rejectsInvalidPathFromConfiguration() throws IOException {
+    String yaml = "comparison:\n" + "  ignoreCase:\n" + "    paths:\n" + "      - users[*].email\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
+  }
+
+  @Test
+  void rejectsNegativeNumericToleranceFromConfiguration() throws IOException {
+    String yaml = "comparison:\n" + "  numericTolerance:\n" + "    global: -0.1\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
+  }
+
+  @Test
+  void invalidOutputConfigurationCannotBeLoadedForComparison() {
+    String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: 0\n";
+
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
   }
 }
