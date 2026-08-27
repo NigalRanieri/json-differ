@@ -45,14 +45,6 @@ public final class ComparisonOptions {
     this.ignoreCasePaths = Collections.unmodifiableSet(new HashSet<>(ignoreCasePaths));
   }
 
-  public boolean hasNumericTolerance() {
-    return numericTolerance != null;
-  }
-
-  public double getNumericTolerance() {
-    return numericTolerance;
-  }
-
   public Double getNumericTolerance(String path) {
     Double resolvedTolerance = numericTolerance;
 
@@ -63,14 +55,6 @@ public final class ComparisonOptions {
     }
 
     return resolvedTolerance;
-  }
-
-  public boolean isTreatNullAndMissingAsEqual() {
-    return treatNullAndMissingAsEqual;
-  }
-
-  public boolean isIgnoreArrayOrder() {
-    return ignoreArrayOrder;
   }
 
   public boolean shouldIgnoreArrayOrder(String path) {
