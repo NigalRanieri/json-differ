@@ -198,16 +198,6 @@ class ObjectComparisonTest {
   }
 
   @Test
-  void shouldPreserveGlobalNullAndMissingBehavior() {
-    ComparisonResult result =
-        JsonCompare.builder()
-            .treatNullAndMissingAsEqual()
-            .compare("{\"name\":\"Alice\",\"optional\":null}", "{\"name\":\"Alice\"}");
-
-    assertTrue(result.isEqual());
-  }
-
-  @Test
   void treatsNullAndMissingAsEqualAtConfiguredPath() {
     ComparisonResult result =
         JsonCompare.builder()

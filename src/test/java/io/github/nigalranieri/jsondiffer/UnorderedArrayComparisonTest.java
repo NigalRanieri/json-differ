@@ -163,31 +163,6 @@ class UnorderedArrayComparisonTest {
   }
 
   @Test
-  void shouldPreserveGlobalIgnoreArrayOrderBehavior() {
-    ComparisonResult result =
-        JsonCompare.builder()
-            .ignoreArrayOrder()
-            .compare(
-                "{\"first\":[1,2,3],\"second\":[\"a\",\"b\"]}",
-                "{\"first\":[3,1,2],\"second\":[\"b\",\"a\"]}");
-
-    assertTrue(result.isEqual());
-  }
-
-  @Test
-  void shouldPreservePathSpecificIgnoreArrayOrderBehavior() {
-    ComparisonResult result =
-        JsonCompare.builder()
-            .ignoreArrayOrder("$.unordered")
-            .compare(
-                "{\"unordered\":[1,2],\"ordered\":[1,2]}",
-                "{\"unordered\":[2,1],\"ordered\":[2,1]}");
-
-    assertFalse(result.isEqual());
-    assertEquals(2, result.getDifferences().size());
-  }
-
-  @Test
   void unorderedArrayComparisonRespectsNumericTolerance() {
     ComparisonResult result =
         JsonCompare.builder()

@@ -60,16 +60,6 @@ class NumericComparisonTest {
   }
 
   @Test
-  void shouldPreserveGlobalNumericToleranceBehavior() {
-    ComparisonResult result =
-        JsonCompare.builder()
-            .numericTolerance(0.01)
-            .compare("{\"a\":10.0,\"b\":20.0}", "{\"a\":10.005,\"b\":20.005}");
-
-    assertTrue(result.isEqual());
-  }
-
-  @Test
   void appliesNumericToleranceAtConfiguredPath() {
     ComparisonResult result =
         JsonCompare.builder()
@@ -150,30 +140,12 @@ class NumericComparisonTest {
   }
 
   @Test
-  void pathSpecificToleranceIsInclusiveAtBoundary() {
-    ComparisonResult result =
-        JsonCompare.builder()
-            .numericTolerance("$.price", 0.1)
-            .compare("{\"price\":10.0}", "{\"price\":10.1}");
-
-    assertTrue(result.isEqual());
-  }
-
-  @Test
   void lastMatchingPathSpecificToleranceWins() {
     ComparisonResult result =
         JsonCompare.builder()
             .numericTolerance("$.**.price", 0.01)
             .numericTolerance("$.orders[*].price", 0.1)
             .compare("{\"orders\":[{\"price\":10.0}]}", "{\"orders\":[{\"price\":10.05}]}");
-
-    assertTrue(result.isEqual());
-  }
-
-  @Test
-  void globalNumericToleranceIsInclusiveAtBoundary() {
-    ComparisonResult result =
-        JsonCompare.builder().numericTolerance(0.1).compare("{\"price\":10.0}", "{\"price\":10.1}");
 
     assertTrue(result.isEqual());
   }

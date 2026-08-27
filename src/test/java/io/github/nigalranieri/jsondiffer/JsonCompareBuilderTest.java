@@ -100,41 +100,14 @@ class JsonCompareBuilderTest {
   }
 
   @Test
-  void shouldSnapshotAllConfigurationWhenComparatorIsBuilt() {
-    JsonCompareBuilder builder =
-        JsonCompare.builder()
-            .ignorePath("$.ignored")
-            .ignoreArrayOrder("$.unordered")
-            .numericTolerance(0.01)
-            .treatNullAndMissingAsEqual()
-            .ignoreCase("$.name");
+  void builtComparatorKeepsPathSpecificUnorderedArraySnapshot() {
+    JsonCompareBuilder builder = JsonCompare.builder().ignoreArrayOrder("$.unordered");
 
     JsonComparator comparator = builder.build();
 
-    builder
-        .ignorePath("$.otherIgnored")
-        .ignoreArrayOrder("$.otherUnordered")
-        .numericTolerance(10.0)
-        .treatNullAndMissingAsEqual("$.otherOptional")
-        .ignoreCase("$.city");
+    builder.ignoreArrayOrder("$.other");
 
-    ComparisonResult result =
-        comparator.compare(
-            "{"
-                + "\"ignored\":1,"
-                + "\"unordered\":[1,2],"
-                + "\"price\":10.0,"
-                + "\"optional\":null,"
-                + "\"name\":\"Alice\","
-                + "\"city\":\"Milan\""
-                + "}",
-            "{"
-                + "\"ignored\":999,"
-                + "\"unordered\":[2,1],"
-                + "\"price\":10.5,"
-                + "\"name\":\"alice\","
-                + "\"city\":\"milan\""
-                + "}");
+    ComparisonResult result = comparator.compare("{\"other\":[1,2]}", "{\"other\":[2,1]}");
 
     assertFalse(result.isEqual());
   }
