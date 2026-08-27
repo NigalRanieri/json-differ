@@ -19,6 +19,21 @@ Try **json-differ** directly in your browser — no installation required.
 
 The playground runs the real Java library in your browser and exposes the full comparison configuration through optional YAML, including path-aware rules and result formatting.
 
+## Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [YAML Configuration](#yaml-configuration)
+- [Path Syntax](#path-syntax)
+- [Default Comparison Semantics](#default-comparison-semantics)
+- [Working with Differences](#working-with-differences)
+- [Result Formatting](#result-formatting)
+- [File Comparison](#file-comparison)
+- [Requirements](#requirements)
+- [License](#license)
+
 ## Features
 
 - Structural JSON comparison
