@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.nigalranieri.jsondiffer.result.ComparisonResultFormat;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
@@ -177,5 +180,31 @@ public class JsonDifferConfigLoaderTest {
     String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: -10\n";
 
     assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+  }
+
+  @Test
+  void loadsExplicitNullYamlAsDefaultConfiguration() throws IOException {
+    JsonDifferConfig config = JsonDifferConfigLoader.load("null");
+
+    assertNotNull(config);
+    assertNotNull(config.getComparison());
+    assertNotNull(config.getOutput());
+  }
+
+  @Test
+  void loadsExplicitNullYamlFileAsDefaultConfiguration() throws IOException {
+    Path path = Files.createTempFile("json-differ-null-", ".yml");
+
+    try {
+      Files.write(path, Collections.singletonList("null"), StandardCharsets.UTF_8);
+
+      JsonDifferConfig config = JsonDifferConfigLoader.load(path);
+
+      assertNotNull(config);
+      assertNotNull(config.getComparison());
+      assertNotNull(config.getOutput());
+    } finally {
+      Files.deleteIfExists(path);
+    }
   }
 }

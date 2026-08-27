@@ -56,4 +56,24 @@ class OutputConfigTest {
 
     assertThrows(NullPointerException.class, () -> config.format(null));
   }
+
+  @Test
+  void acceptsNonNullFormat() {
+    OutputConfig config = new OutputConfig();
+
+    config.setFormat(ComparisonResultFormat.GROUPED);
+
+    assertEquals(ComparisonResultFormat.GROUPED, config.getFormat());
+  }
+
+  @Test
+  void acceptsNonNullColumnConfiguration() {
+    OutputConfig config = new OutputConfig();
+    ColumnConfig columns = new ColumnConfig();
+    columns.setMaxCellWidth(80);
+
+    config.setColumns(columns);
+
+    assertSame(columns, config.getColumns());
+  }
 }
