@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - feature/path-aware-comparison
 
   workflow_dispatch:
 
