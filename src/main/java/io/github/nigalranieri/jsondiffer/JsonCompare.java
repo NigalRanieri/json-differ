@@ -1,7 +1,10 @@
 package io.github.nigalranieri.jsondiffer;
 
+import io.github.nigalranieri.jsondiffer.config.*;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Entry point for comparing JSON documents.
@@ -51,6 +54,82 @@ public final class JsonCompare {
    */
   public static ComparisonResult compare(Path expected, Path actual) {
     return builder().compare(expected, actual);
+  }
+
+  /**
+   * Creates a configured comparator from the supplied configuration.
+   *
+   * <p>The configuration is translated through the same builder API used for programmatic
+   * configuration, preserving the same validation and comparison semantics.
+   *
+   * @param config the comparison configuration
+   * @return a reusable configured comparator
+   * @throws NullPointerException if {@code config} is {@code null}
+   */
+  public static JsonComparator fromConfig(JsonDifferConfig config) {
+    Objects.requireNonNull(config, "config");
+
+    JsonCompareBuilder builder = builder();
+
+    ComparisonConfig comparison = config.getComparison();
+
+    if (comparison == null) {
+      return builder.build();
+    }
+
+    for (String path : comparison.getIgnorePaths()) {
+      builder.ignorePath(path);
+    }
+
+    ArrayOrderConfig arrayOrder = comparison.getArrayOrder();
+
+    if (arrayOrder != null) {
+      if (arrayOrder.isIgnoreGlobally()) {
+        builder.ignoreArrayOrder();
+      }
+
+      for (String path : arrayOrder.getIgnoreAt()) {
+        builder.ignoreArrayOrder(path);
+      }
+    }
+
+    NullAndMissingConfig nullAndMissing = comparison.getNullAndMissing();
+
+    if (nullAndMissing != null) {
+      if (nullAndMissing.isEqualGlobally()) {
+        builder.treatNullAndMissingAsEqual();
+      }
+
+      for (String path : nullAndMissing.getEqualAt()) {
+        builder.treatNullAndMissingAsEqual(path);
+      }
+    }
+
+    NumericToleranceConfig numericTolerance = comparison.getNumericTolerance();
+
+    if (numericTolerance != null) {
+      if (numericTolerance.getGlobal() != null) {
+        builder.numericTolerance(numericTolerance.getGlobal());
+      }
+
+      for (Map.Entry<String, Double> entry : numericTolerance.getPaths().entrySet()) {
+        builder.numericTolerance(entry.getKey(), entry.getValue());
+      }
+    }
+
+    IgnoreCaseConfig ignoreCase = comparison.getIgnoreCase();
+
+    if (ignoreCase != null) {
+      if (ignoreCase.isGlobally()) {
+        builder.ignoreCase();
+      }
+
+      for (String path : ignoreCase.getPaths()) {
+        builder.ignoreCase(path);
+      }
+    }
+
+    return builder.build();
   }
 
   /**
