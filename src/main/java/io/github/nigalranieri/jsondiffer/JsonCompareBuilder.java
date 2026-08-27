@@ -28,6 +28,8 @@ public final class JsonCompareBuilder {
   private final Set<String> unorderedArrayPaths = new HashSet<>();
   private final List<PathTolerance> pathNumericTolerances = new ArrayList<>();
   private final Set<String> nullAndMissingEqualPaths = new HashSet<>();
+  private boolean ignoreCase;
+  private final Set<String> ignoreCasePaths = new HashSet<>();
 
   JsonCompareBuilder() {}
 
@@ -168,6 +170,39 @@ public final class JsonCompareBuilder {
   }
 
   /**
+   * Configures string values to be compared without considering case.
+   *
+   * <p>This option applies only to string values. Object field names remain case-sensitive.
+   *
+   * @return this builder
+   */
+  public JsonCompareBuilder ignoreCase() {
+    this.ignoreCase = true;
+    return this;
+  }
+
+  /**
+   * Configures string values matching the specified path to be compared without considering case.
+   *
+   * <p>String values at other paths remain case-sensitive unless global case-insensitive comparison
+   * is enabled through {@link #ignoreCase()}.
+   *
+   * <p>This option applies only to string values. Object field names remain case-sensitive.
+   *
+   * <p>The path supports the same wildcard syntax as {@link #ignorePath(String)}.
+   *
+   * @param path the path or path pattern where string case should be ignored
+   * @return this builder
+   * @throws NullPointerException if {@code path} is {@code null}
+   * @throws IllegalArgumentException if {@code path} is invalid
+   */
+  public JsonCompareBuilder ignoreCase(String path) {
+    PathValidator.validate(path);
+    ignoreCasePaths.add(path);
+    return this;
+  }
+
+  /**
    * Compares two JSON documents using the options configured on this builder.
    *
    * @param expected the expected JSON document
@@ -207,6 +242,8 @@ public final class JsonCompareBuilder {
             numericTolerance,
             unorderedArrayPaths,
             pathNumericTolerances,
-            nullAndMissingEqualPaths));
+            nullAndMissingEqualPaths,
+            ignoreCase,
+            ignoreCasePaths));
   }
 }

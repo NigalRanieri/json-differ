@@ -49,6 +49,12 @@ public final class ComparisonEngine {
       }
     }
 
+    if (expected.isTextual() && actual.isTextual() && options.shouldIgnoreCase(path)) {
+      if (expected.textValue().equalsIgnoreCase(actual.textValue())) {
+        return;
+      }
+    }
+
     if (expected.isObject() && actual.isObject()) {
       compareObjects(path, expected, actual, differences);
       return;
