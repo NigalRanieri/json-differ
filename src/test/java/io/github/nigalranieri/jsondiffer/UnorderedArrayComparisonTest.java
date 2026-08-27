@@ -161,4 +161,29 @@ class UnorderedArrayComparisonTest {
     assertEquals("$.scores[0]", result.getDifferences().get(0).getPath());
     assertEquals("$.scores[2]", result.getDifferences().get(1).getPath());
   }
+
+  @Test
+  void shouldPreserveGlobalIgnoreArrayOrderBehavior() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder()
+            .compare(
+                "{\"first\":[1,2,3],\"second\":[\"a\",\"b\"]}",
+                "{\"first\":[3,1,2],\"second\":[\"b\",\"a\"]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void shouldPreservePathSpecificIgnoreArrayOrderBehavior() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder("$.unordered")
+            .compare(
+                "{\"unordered\":[1,2],\"ordered\":[1,2]}",
+                "{\"unordered\":[2,1],\"ordered\":[2,1]}");
+
+    assertFalse(result.isEqual());
+    assertEquals(2, result.getDifferences().size());
+  }
 }

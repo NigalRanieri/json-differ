@@ -196,4 +196,14 @@ class ObjectComparisonTest {
     assertTrue(difference.getExpected().getValue() instanceof Map);
     assertFalse(difference.getExpected().getValue() instanceof JsonNode);
   }
+
+  @Test
+  void shouldPreserveGlobalNullAndMissingBehavior() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual()
+            .compare("{\"name\":\"Alice\",\"optional\":null}", "{\"name\":\"Alice\"}");
+
+    assertTrue(result.isEqual());
+  }
 }

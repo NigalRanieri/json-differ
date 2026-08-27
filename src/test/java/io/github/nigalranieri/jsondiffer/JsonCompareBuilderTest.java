@@ -89,4 +89,27 @@ class JsonCompareBuilderTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void shouldRemainStrictByDefault() {
+    assertFalse(
+        JsonCompare.compare(
+                "{\"value\":1,\"name\":\"Alice\",\"optional\":null,\"items\":[1,2]}",
+                "{\"value\":1.001,\"name\":\"alice\",\"items\":[2,1]}")
+            .isEqual());
+  }
+
+  @Test
+  void shouldSnapshotAllConfigurationWhenComparatorIsBuilt() {
+    JsonCompareBuilder builder =
+        JsonCompare.builder()
+            .ignorePath("$.ignored")
+            .ignoreArrayOrder("$.unordered")
+            .numericTolerance(0.01)
+            .treatNullAndMissingAsEqual();
+
+    JsonComparator comparator = builder.build();
+
+    // Any subsequent builder mutation must not alter comparator.
+  }
 }

@@ -58,4 +58,14 @@ class NumericComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void shouldPreserveGlobalNumericToleranceBehavior() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .numericTolerance(0.01)
+            .compare("{\"a\":10.0,\"b\":20.0}", "{\"a\":10.005,\"b\":20.005}");
+
+    assertTrue(result.isEqual());
+  }
 }
