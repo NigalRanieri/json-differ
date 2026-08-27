@@ -2,6 +2,7 @@ package io.github.nigalranieri.jsondiffer;
 
 import io.github.nigalranieri.jsondiffer.config.*;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
@@ -130,6 +131,20 @@ public final class JsonCompare {
     }
 
     return builder.build();
+  }
+
+  /**
+   * Creates a configured comparator by loading configuration from the supplied YAML file.
+   *
+   * @param configPath the path to the YAML configuration file
+   * @return a reusable configured comparator
+   * @throws NullPointerException if {@code configPath} is {@code null}
+   * @throws IOException if the configuration file cannot be read or parsed
+   */
+  public static JsonComparator fromConfig(Path configPath) throws IOException {
+    Objects.requireNonNull(configPath, "configPath");
+
+    return fromConfig(JsonDifferConfigLoader.load(configPath));
   }
 
   /**

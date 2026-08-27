@@ -6,6 +6,10 @@ import io.github.nigalranieri.jsondiffer.config.JsonDifferConfig;
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfigLoader;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 public class ConfigComparisonTest {
@@ -64,5 +68,25 @@ public class ConfigComparisonTest {
 
     assertTrue(formatted.contains("| TYPE"));
     assertTrue(formatted.contains("| PATH"));
+  }
+
+  @Test
+  void loadsComparisonConfigurationDirectlyFromPath() throws IOException {
+    Path configPath = Files.createTempFile("json-differ-", ".yml");
+
+    try {
+      Files.write(
+          configPath,
+          Arrays.asList("comparison:", "  ignoreCase:", "    globally: true"),
+          StandardCharsets.UTF_8);
+
+      ComparisonResult result =
+          JsonCompare.fromConfig(configPath)
+              .compare("{\"name\":\"Alice\"}", "{\"name\":\"alice\"}");
+
+      assertTrue(result.isEqual());
+    } finally {
+      Files.deleteIfExists(configPath);
+    }
   }
 }
