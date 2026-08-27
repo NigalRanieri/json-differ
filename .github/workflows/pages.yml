@@ -38,6 +38,11 @@ jobs:
       - name: Build json-differ
         run: mvn --batch-mode clean package
 
+      - name: Resolve project version
+        id: version
+        run: |
+          echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
       - name: Copy runtime dependencies
         run: |
           mkdir -p demo-build/dependencies
@@ -52,7 +57,7 @@ jobs:
 
           javac \
             --release 8 \
-            -cp target/json-differ-0.2.0-SNAPSHOT.jar \
+            -cp target/json-differ-${{ steps.version.outputs.version }}.jar \
             -d demo-build/classes \
             demo/bridge/src/io/github/nigalranieri/jsondiffer/demo/DemoBridge.java
 
@@ -63,7 +68,7 @@ jobs:
           cp -R demo-build/classes/. demo-build/bundle/
 
           unzip -q -o \
-            target/json-differ-0.2.0-SNAPSHOT.jar \
+            target/json-differ-${{ steps.version.outputs.version }}.jar \
             -d demo-build/bundle
 
           for jarfile in demo-build/dependencies/*.jar; do

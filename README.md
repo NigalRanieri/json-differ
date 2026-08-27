@@ -47,7 +47,7 @@ The playground runs the real Java library in your browser and exposes the full c
 <dependency>
     <groupId>io.github.nigalranieri</groupId>
     <artifactId>json-differ</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -57,7 +57,7 @@ The playground runs the real Java library in your browser and exposes the full c
 
 ```groovy
 dependencies {
-    implementation 'io.github.nigalranieri:json-differ:0.1.0'
+    implementation 'io.github.nigalranieri:json-differ:0.2.0'
 }
 ```
 
@@ -65,7 +65,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.nigalranieri:json-differ:0.1.0")
+    implementation("io.github.nigalranieri:json-differ:0.2.0")
 }
 ```
 

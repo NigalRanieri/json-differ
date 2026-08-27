@@ -9,7 +9,7 @@
 
     <groupId>io.github.nigalranieri</groupId>
     <artifactId>json-differ</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
 
     <name>json-differ</name>
     <description>Configurable structural JSON comparison and diffing for Java</description>
