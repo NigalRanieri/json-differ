@@ -285,4 +285,125 @@ class ComparisonResultTest {
     assertThrows(
         IllegalArgumentException.class, () -> result.format(ComparisonResultFormat.TRAVERSAL, -1));
   }
+
+  @Test
+  void shouldFilterDifferencesByType() {
+    Difference valueMismatch =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference missingField =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    Difference secondValueMismatch =
+        new Difference(
+            "$.city",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Rome"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Milan"));
+
+    ComparisonResult result =
+        new ComparisonResult(Arrays.asList(valueMismatch, missingField, secondValueMismatch));
+
+    ComparisonResult filtered = result.filter(DifferenceType.VALUE_MISMATCH);
+
+    assertEquals(Arrays.asList(valueMismatch, secondValueMismatch), filtered.getDifferences());
+  }
+
+  @Test
+  void shouldBeEqualWhenFilteringRemovesAllDifferences() {
+    Difference difference =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(difference));
+
+    ComparisonResult filtered = result.filter(DifferenceType.MISSING_FIELD);
+
+    assertTrue(filtered.isEqual());
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void shouldFilterDifferencesByMultipleTypes() {
+    Difference valueMismatch =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference missingField =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    Difference caseMismatch =
+        new Difference(
+            "$.status",
+            DifferenceType.CASE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "ACTIVE"),
+            DifferenceValue.of(DifferenceValueType.STRING, "active"));
+
+    ComparisonResult result =
+        new ComparisonResult(Arrays.asList(valueMismatch, missingField, caseMismatch));
+
+    ComparisonResult filtered =
+        result.filter(DifferenceType.VALUE_MISMATCH, DifferenceType.CASE_MISMATCH);
+
+    assertEquals(Arrays.asList(valueMismatch, caseMismatch), filtered.getDifferences());
+  }
+
+  @Test
+  void shouldReturnEmptyResultWhenNoDifferenceTypesMatch() {
+    Difference difference =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(difference));
+
+    ComparisonResult filtered =
+        result.filter(DifferenceType.MISSING_FIELD, DifferenceType.UNEXPECTED_FIELD);
+
+    assertTrue(filtered.isEqual());
+    assertTrue(filtered.getDifferences().isEmpty());
+  }
+
+  @Test
+  void shouldNotModifyOriginalResultWhenFilteringByMultipleTypes() {
+    Difference valueMismatch =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference missingField =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    ComparisonResult result = new ComparisonResult(Arrays.asList(valueMismatch, missingField));
+
+    result.filter(DifferenceType.VALUE_MISMATCH);
+
+    assertEquals(Arrays.asList(valueMismatch, missingField), result.getDifferences());
+  }
 }

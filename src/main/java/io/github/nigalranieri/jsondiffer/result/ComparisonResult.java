@@ -2,6 +2,7 @@ package io.github.nigalranieri.jsondiffer.result;
 
 import io.github.nigalranieri.jsondiffer.internal.format.TableFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Immutable result of a JSON comparison.
@@ -124,6 +125,26 @@ public final class ComparisonResult {
     }
 
     return formatTraversal(maxCellWidth);
+  }
+
+  /**
+   * Returns a new comparison result containing only differences of the specified types.
+   *
+   * <p>The original comparison result is not modified, and the relative order of matching
+   * differences is preserved.
+   *
+   * @param types the difference types to retain
+   * @return a new comparison result containing only differences of the specified types
+   */
+  public ComparisonResult filter(DifferenceType... types) {
+    List<DifferenceType> includedTypes = Arrays.asList(types);
+
+    List<Difference> filtered =
+        differences.stream()
+            .filter(difference -> includedTypes.contains(difference.getType()))
+            .collect(Collectors.toList());
+
+    return new ComparisonResult(filtered);
   }
 
   /**
