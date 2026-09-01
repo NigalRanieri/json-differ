@@ -2,6 +2,7 @@ package io.github.nigalranieri.jsondiffer.result;
 
 import io.github.nigalranieri.jsondiffer.internal.format.TableFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -148,6 +149,33 @@ public final class ComparisonResult {
   }
 
   /**
+   * Returns a new comparison result containing only value mismatches whose expected or actual
+   * string value matches the supplied pattern.
+   *
+   * <p>Only differences of type {@link DifferenceType#VALUE_MISMATCH} with string values are
+   * considered. The original comparison result is not modified, and the relative order of matching
+   * differences is preserved.
+   *
+   * @param pattern the pattern used to match expected and actual string values
+   * @return a new comparison result containing matching value mismatches
+   * @throws NullPointerException if {@code pattern} is {@code null}
+   */
+  public ComparisonResult filterValueMismatch(Pattern pattern) {
+    Objects.requireNonNull(pattern, "pattern");
+
+    List<Difference> filtered =
+        differences.stream()
+            .filter(difference -> difference.getType() == DifferenceType.VALUE_MISMATCH)
+            .filter(
+                difference ->
+                    matchesPattern(difference.getExpected(), pattern)
+                        || matchesPattern(difference.getActual(), pattern))
+            .collect(Collectors.toList());
+
+    return new ComparisonResult(filtered);
+  }
+
+  /**
    * Returns this result in traversal format.
    *
    * @return a human-readable traversal-order representation of this result
@@ -214,5 +242,10 @@ public final class ComparisonResult {
         + System.lineSeparator()
         + System.lineSeparator()
         + TableFormatter.format(headers, rows, maxCellWidth);
+  }
+
+  private boolean matchesPattern(DifferenceValue value, Pattern pattern) {
+    return value.getType() == DifferenceValueType.STRING
+        && pattern.matcher((String) value.getValue()).matches();
   }
 }
