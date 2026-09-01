@@ -1,9 +1,9 @@
 package io.github.nigalranieri.jsondiffer;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
+import io.github.nigalranieri.jsondiffer.result.DifferenceType;
 import org.junit.jupiter.api.Test;
 
 class StringComparisonTest {
@@ -99,5 +99,21 @@ class StringComparisonTest {
                 "{\"user\":{\"name\":\"alice\"},\"nested\":{\"user\":{\"name\":\"bob\"}}}");
 
     assertTrue(result.isEqual());
+  }
+
+  @Test
+  void reportsCaseMismatchWhenStringsDifferOnlyByCase() {
+    ComparisonResult result =
+        JsonCompare.compare("{\"status\":\"ACTIVE\"}", "{\"status\":\"active\"}");
+
+    assertEquals(DifferenceType.CASE_MISMATCH, result.getDifferences().get(0).getType());
+  }
+
+  @Test
+  void reportsValueMismatchWhenStringsDifferBeyondCase() {
+    ComparisonResult result =
+        JsonCompare.compare("{\"status\":\"ACTIVE\"}", "{\"status\":\"INACTIVE\"}");
+
+    assertEquals(DifferenceType.VALUE_MISMATCH, result.getDifferences().get(0).getType());
   }
 }

@@ -49,12 +49,6 @@ public final class ComparisonEngine {
       }
     }
 
-    if (expected.isTextual() && actual.isTextual() && options.shouldIgnoreCase(path)) {
-      if (expected.textValue().equalsIgnoreCase(actual.textValue())) {
-        return;
-      }
-    }
-
     if (expected.isObject() && actual.isObject()) {
       compareObjects(path, expected, actual, differences);
       return;
@@ -63,6 +57,24 @@ public final class ComparisonEngine {
     if (expected.isArray() && actual.isArray()) {
       compareArrays(path, expected, actual, differences);
       return;
+    }
+
+    if (expected.isTextual() && actual.isTextual()) {
+      boolean differsOnlyByCase = expected.textValue().equalsIgnoreCase(actual.textValue());
+
+      if (differsOnlyByCase) {
+        if (options.shouldIgnoreCase(path)) {
+          return;
+        }
+
+        differences.add(
+            new Difference(
+                path,
+                DifferenceType.CASE_MISMATCH,
+                toDifferenceValue(expected),
+                toDifferenceValue(actual)));
+        return;
+      }
     }
 
     differences.add(

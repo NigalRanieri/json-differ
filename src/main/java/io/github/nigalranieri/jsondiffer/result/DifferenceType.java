@@ -16,5 +16,8 @@ public enum DifferenceType {
   MISSING_ELEMENT,
 
   /** An array element exists in the actual JSON array but has no corresponding expected element. */
-  UNEXPECTED_ELEMENT
+  UNEXPECTED_ELEMENT,
+
+  /** The string values at the same JSON path differ only in letter casing. */
+  CASE_MISMATCH
 }
