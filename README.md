@@ -783,3 +783,8 @@ Jackson is used internally for JSON parsing but is not exposed through the publi
 Copyright © 2026 Nigal Ranieri.
 
 Licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+
+---
+
+> *“A difference which makes no difference is no difference at all.”*  
+> — William James
