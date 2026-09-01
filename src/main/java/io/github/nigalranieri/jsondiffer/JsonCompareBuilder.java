@@ -36,6 +36,7 @@ public final class JsonCompareBuilder {
   private final Set<String> nullAndMissingEqualPaths = new HashSet<>();
   private boolean ignoreCase;
   private final Set<String> ignoreCasePaths = new HashSet<>();
+  private final List<String> includedPaths = new ArrayList<>();
 
   JsonCompareBuilder() {}
 
@@ -201,6 +202,22 @@ public final class JsonCompareBuilder {
   }
 
   /**
+   * Restricts comparison to the specified JSON path and its descendants.
+   *
+   * <p>The path supports the same wildcard syntax as other path-based comparison options. Multiple
+   * included paths may be configured by calling this method repeatedly.
+   *
+   * @param path the JSON path to include
+   * @return this builder
+   * @throws IllegalArgumentException if {@code path} is invalid
+   */
+  public JsonCompareBuilder includePath(String path) {
+    PathValidator.validate(path);
+    includedPaths.add(path);
+    return this;
+  }
+
+  /**
    * Configures string values matching the specified path to be compared without considering case.
    *
    * <p>String values at other paths remain case-sensitive unless global case-insensitive comparison
@@ -264,6 +281,7 @@ public final class JsonCompareBuilder {
             pathNumericTolerances,
             nullAndMissingEqualPaths,
             ignoreCase,
-            ignoreCasePaths));
+            ignoreCasePaths,
+            includedPaths));
   }
 }
