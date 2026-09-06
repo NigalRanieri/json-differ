@@ -1,5 +1,7 @@
 package io.github.nigalranieri.jsondiffer;
 
+import io.github.nigalranieri.jsondiffer.exception.InvalidJsonException;
+import io.github.nigalranieri.jsondiffer.exception.JsonReadException;
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
 import io.github.nigalranieri.jsondiffer.internal.PathTolerance;
 import io.github.nigalranieri.jsondiffer.internal.path.PathValidator;
@@ -209,6 +211,7 @@ public final class JsonCompareBuilder {
    *
    * @param path the JSON path to include
    * @return this builder
+   * @throws NullPointerException if {@code path} is {@code null}
    * @throws IllegalArgumentException if {@code path} is invalid
    */
   public JsonCompareBuilder includePath(String path) {
@@ -240,26 +243,57 @@ public final class JsonCompareBuilder {
   }
 
   /**
-   * Compares two JSON documents using the options configured on this builder.
+   * Compares two JSON documents using this comparator's configuration.
    *
    * @param expected the expected JSON document
    * @param actual the actual JSON document
-   * @return the comparison result
+   * @return the comparison result containing any detected differences
    * @throws NullPointerException if either argument is {@code null}
+   * @throws InvalidJsonException if either document contains invalid JSON
    */
   public ComparisonResult compare(String expected, String actual) {
     return build().compare(expected, actual);
   }
 
   /**
-   * Compares two JSON files using the options configured on this builder.
+   * Compares two JSON files using this comparator's configuration.
    *
    * @param expected the path to the expected JSON file
    * @param actual the path to the actual JSON file
-   * @return the comparison result
+   * @return the comparison result containing any detected differences
    * @throws NullPointerException if either path is {@code null}
+   * @throws JsonReadException if either file cannot be read
+   * @throws InvalidJsonException if either file contains invalid JSON
    */
   public ComparisonResult compare(Path expected, Path actual) {
+    return build().compare(expected, actual);
+  }
+
+  /**
+   * Compares a JSON document with a JSON file using this comparator's configuration.
+   *
+   * @param expected the expected JSON document
+   * @param actual the path to the actual JSON file
+   * @return the comparison result containing any detected differences
+   * @throws NullPointerException if either argument is {@code null}
+   * @throws JsonReadException if the actual file cannot be read
+   * @throws InvalidJsonException if either input contains invalid JSON
+   */
+  public ComparisonResult compare(String expected, Path actual) {
+    return build().compare(expected, actual);
+  }
+
+  /**
+   * Compares a JSON file with a JSON document using this comparator's configuration.
+   *
+   * @param expected the path to the expected JSON file
+   * @param actual the actual JSON document
+   * @return the comparison result containing any detected differences
+   * @throws NullPointerException if either argument is {@code null}
+   * @throws JsonReadException if the expected file cannot be read
+   * @throws InvalidJsonException if either input contains invalid JSON
+   */
+  public ComparisonResult compare(Path expected, String actual) {
     return build().compare(expected, actual);
   }
 
