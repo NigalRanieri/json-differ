@@ -1,0 +1,62 @@
+name: Central Auth Check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check Maven Central credentials
+    runs-on: ubuntu-latest
+    environment: release
+
+    steps:
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          server-id: central
+          server-username-env-var: MAVEN_CENTRAL_USERNAME
+          server-password-env-var: MAVEN_CENTRAL_PASSWORD
+
+      - name: Verify credential wiring
+        shell: bash
+        run: |
+          SETTINGS="$HOME/.m2/settings.xml"
+
+          if [[ ! -f "$SETTINGS" ]]; then
+            echo "settings.xml is missing"
+            exit 1
+          fi
+
+          if ! grep -q '<id>central</id>' "$SETTINGS"; then
+            echo "central server entry is missing"
+            exit 1
+          fi
+
+          if [[ -z "${MAVEN_CENTRAL_USERNAME}" ]]; then
+            echo "MAVEN_CENTRAL_USERNAME is empty"
+            exit 1
+          fi
+
+          if [[ -z "${MAVEN_CENTRAL_PASSWORD}" ]]; then
+            echo "MAVEN_CENTRAL_PASSWORD is empty"
+            exit 1
+          fi
+
+          echo "settings.xml exists"
+          echo "central server entry exists"
+          echo "username secret is populated"
+          echo "password secret is populated"
+
+          # Show only the structure, never the actual credentials.
+          sed \
+            -e 's#<username>.*</username>#<username>***</username>#' \
+            -e 's#<password>.*</password>#<password>***</password>#' \
+            "$SETTINGS"
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
