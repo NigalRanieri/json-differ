@@ -16,6 +16,7 @@ public final class ComparisonConfig {
   private NullAndMissingConfig nullAndMissing = new NullAndMissingConfig();
   private NumericToleranceConfig numericTolerance = new NumericToleranceConfig();
   private IgnoreCaseConfig ignoreCase = new IgnoreCaseConfig();
+  private List<String> includePaths = new ArrayList<>();
 
   /**
    * Returns the paths whose differences should be ignored.
@@ -116,5 +117,25 @@ public final class ComparisonConfig {
    */
   public void setIgnoreCase(IgnoreCaseConfig ignoreCase) {
     this.ignoreCase = ignoreCase == null ? new IgnoreCaseConfig() : ignoreCase;
+  }
+
+  /**
+   * Returns the paths that should be included in the comparison.
+   *
+   * @return the included path patterns
+   */
+  public List<String> getIncludePaths() {
+    return includePaths;
+  }
+
+  /**
+   * Configures the paths that should be included in the comparison.
+   *
+   * <p>A {@code null} value is normalized to an empty list.
+   *
+   * @param includePaths the included path patterns
+   */
+  public void setIncludePaths(List<String> includePaths) {
+    this.includePaths = includePaths == null ? new ArrayList<String>() : includePaths;
   }
 }

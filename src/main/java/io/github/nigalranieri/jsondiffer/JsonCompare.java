@@ -82,6 +82,10 @@ public final class JsonCompare {
       builder.ignorePath(path);
     }
 
+    for (String path : comparison.getIncludePaths()) {
+      builder.includePath(path);
+    }
+
     ArrayOrderConfig arrayOrder = comparison.getArrayOrder();
 
     if (arrayOrder != null) {

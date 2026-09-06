@@ -1,7 +1,6 @@
 package io.github.nigalranieri.jsondiffer;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfig;
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfigLoader;
@@ -123,5 +122,55 @@ public class ConfigComparisonTest {
     String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: 0\n";
 
     assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+  }
+
+  @Test
+  void shouldRestrictComparisonToIncludedPathsFromConfig() throws Exception {
+    String yaml = "comparison:\n" + "  includePaths:\n" + "    - $.user.name\n";
+
+    String expected = "{\"user\":{\"name\":\"Alice\",\"age\":30},\"version\":1}";
+
+    String actual = "{\"user\":{\"name\":\"Bob\",\"age\":31},\"version\":2}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    ComparisonResult result = JsonCompare.fromConfig(config).compare(expected, actual);
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals("$.user.name", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void appliesIncludedPathsFromYamlConfiguration() throws IOException {
+    String yaml = "comparison:\n" + "  includePaths:\n" + "    - $.user.name\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    ComparisonResult result =
+        JsonCompare.fromConfig(config)
+            .compare(
+                "{\"user\":{\"name\":\"Alice\",\"age\":30},\"version\":1}",
+                "{\"user\":{\"name\":\"Bob\",\"age\":31},\"version\":2}");
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals("$.user.name", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void rejectsNullIncludedPathFromConfiguration() throws IOException {
+    String yaml = "comparison:\n" + "  includePaths:\n" + "    - null\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    assertThrows(NullPointerException.class, () -> JsonCompare.fromConfig(config));
+  }
+
+  @Test
+  void rejectsInvalidIncludedPathFromConfiguration() throws IOException {
+    String yaml = "comparison:\n" + "  includePaths:\n" + "    - user.name\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
   }
 }
