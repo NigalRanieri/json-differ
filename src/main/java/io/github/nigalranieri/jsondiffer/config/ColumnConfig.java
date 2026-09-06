@@ -12,6 +12,12 @@ public final class ColumnConfig {
 
   private Integer maxCellWidth = DEFAULT_MAX_CELL_WIDTH;
 
+  private static final String DEFAULT_EXPECTED_LABEL = "EXPECTED";
+  private static final String DEFAULT_ACTUAL_LABEL = "ACTUAL";
+
+  private String expectedLabel = DEFAULT_EXPECTED_LABEL;
+  private String actualLabel = DEFAULT_ACTUAL_LABEL;
+
   /**
    * Returns the maximum width used for formatted table cells.
    *
@@ -41,5 +47,45 @@ public final class ColumnConfig {
     }
 
     this.maxCellWidth = maxCellWidth;
+  }
+
+  /**
+   * Returns the label used for the expected-value column.
+   *
+   * @return the expected-value column label
+   */
+  public String getExpectedLabel() {
+    return expectedLabel;
+  }
+
+  /**
+   * Configures the label used for the expected-value column.
+   *
+   * <p>A {@code null} value restores the default label {@code EXPECTED}.
+   *
+   * @param expectedLabel the expected-value column label, or {@code null} for the default
+   */
+  public void setExpectedLabel(String expectedLabel) {
+    this.expectedLabel = expectedLabel == null ? DEFAULT_EXPECTED_LABEL : expectedLabel;
+  }
+
+  /**
+   * Returns the label used for the actual-value column.
+   *
+   * @return the actual-value column label
+   */
+  public String getActualLabel() {
+    return actualLabel;
+  }
+
+  /**
+   * Configures the label used for the actual-value column.
+   *
+   * <p>A {@code null} value restores the default label {@code ACTUAL}.
+   *
+   * @param actualLabel the actual-value column label, or {@code null} for the default
+   */
+  public void setActualLabel(String actualLabel) {
+    this.actualLabel = actualLabel == null ? DEFAULT_ACTUAL_LABEL : actualLabel;
   }
 }

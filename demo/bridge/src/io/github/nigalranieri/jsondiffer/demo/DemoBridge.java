@@ -12,15 +12,14 @@ public final class DemoBridge {
     public static String compare(
             String expected,
             String actual,
-            String yaml) {
+            String jsonConfig) {
 
         try {
             JsonDifferConfig config =
-                    JsonDifferConfigLoader.load(yaml);
+                    JsonDifferConfigLoader.loadJson(jsonConfig);
 
             ComparisonResult result =
-                    JsonCompare.fromConfig(config)
-                            .compare(expected, actual);
+                    JsonCompare.compare(expected, actual, config);
 
             return config.getOutput().format(result);
         } catch (Exception e) {

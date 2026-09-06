@@ -2,6 +2,7 @@ package io.github.nigalranieri.jsondiffer.internal.comparison;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.nigalranieri.jsondiffer.internal.ComparisonOptions;
+import io.github.nigalranieri.jsondiffer.internal.path.PathMatcher;
 import io.github.nigalranieri.jsondiffer.result.*;
 import java.math.BigDecimal;
 import java.util.*;
@@ -9,6 +10,8 @@ import java.util.*;
 public final class ComparisonEngine {
 
   private final ComparisonOptions options;
+
+  private final PathMatcher pathMatcher = new PathMatcher();
 
   public ComparisonEngine(ComparisonOptions options) {
     this.options = options;
@@ -30,6 +33,12 @@ public final class ComparisonEngine {
       return;
     }
 
+    if (!shouldTraverse(path)) {
+      return;
+    }
+
+    boolean included = isIncluded(path);
+
     if (expected.equals(actual)) {
       return;
     }
@@ -49,12 +58,6 @@ public final class ComparisonEngine {
       }
     }
 
-    if (expected.isTextual() && actual.isTextual() && options.shouldIgnoreCase(path)) {
-      if (expected.textValue().equalsIgnoreCase(actual.textValue())) {
-        return;
-      }
-    }
-
     if (expected.isObject() && actual.isObject()) {
       compareObjects(path, expected, actual, differences);
       return;
@@ -63,6 +66,28 @@ public final class ComparisonEngine {
     if (expected.isArray() && actual.isArray()) {
       compareArrays(path, expected, actual, differences);
       return;
+    }
+
+    if (!included) {
+      return;
+    }
+
+    if (expected.isTextual() && actual.isTextual()) {
+      boolean differsOnlyByCase = expected.textValue().equalsIgnoreCase(actual.textValue());
+
+      if (differsOnlyByCase) {
+        if (options.shouldIgnoreCase(path)) {
+          return;
+        }
+
+        differences.add(
+            new Difference(
+                path,
+                DifferenceType.CASE_MISMATCH,
+                toDifferenceValue(expected),
+                toDifferenceValue(actual)));
+        return;
+      }
     }
 
     differences.add(
@@ -157,6 +182,10 @@ public final class ComparisonEngine {
           continue;
         }
 
+        if (!shouldReportStructuralDifference(fieldPath, field.getValue())) {
+          continue;
+        }
+
         differences.add(
             new Difference(
                 fieldPath,
@@ -182,6 +211,10 @@ public final class ComparisonEngine {
 
       if (!expected.has(fieldName)) {
         if (options.shouldTreatNullAndMissingAsEqual(fieldPath) && field.getValue().isNull()) {
+          continue;
+        }
+
+        if (!shouldReportStructuralDifference(fieldPath, field.getValue())) {
           continue;
         }
 
@@ -212,7 +245,8 @@ public final class ComparisonEngine {
     for (int i = commonSize; i < expected.size(); i++) {
       String elementPath = path + "[" + i + "]";
 
-      if (options.isIgnoredPath(elementPath)) {
+      if (options.isIgnoredPath(elementPath)
+          || !shouldReportStructuralDifference(elementPath, expected.get(i))) {
         continue;
       }
 
@@ -358,7 +392,8 @@ public final class ComparisonEngine {
       if (!expectedMatched[i]) {
         String elementPath = path + "[" + i + "]";
 
-        if (options.isIgnoredPath(elementPath)) {
+        if (options.isIgnoredPath(elementPath)
+            || !shouldReportStructuralDifference(elementPath, expected.get(i))) {
           continue;
         }
 
@@ -375,7 +410,7 @@ public final class ComparisonEngine {
       if (!actualMatched[j]) {
         String elementPath = path + "[" + j + "]";
 
-        if (options.isIgnoredPath(elementPath)) {
+        if (options.isIgnoredPath(elementPath) || !isIncluded(elementPath)) {
           continue;
         }
 
@@ -387,5 +422,21 @@ public final class ComparisonEngine {
                 toDifferenceValue(actual.get(j))));
       }
     }
+  }
+
+  private boolean isIncluded(String path) {
+    return options.getIncludedPaths().isEmpty()
+        || options.getIncludedPaths().stream()
+            .anyMatch(pattern -> pathMatcher.matchesOrIsDescendant(pattern, path));
+  }
+
+  private boolean shouldTraverse(String path) {
+    return options.getIncludedPaths().isEmpty()
+        || options.getIncludedPaths().stream()
+            .anyMatch(pattern -> pathMatcher.matchesOrIsAncestor(pattern, path));
+  }
+
+  private boolean shouldReportStructuralDifference(String path, JsonNode node) {
+    return isIncluded(path) || ((node.isObject() || node.isArray()) && shouldTraverse(path));
   }
 }

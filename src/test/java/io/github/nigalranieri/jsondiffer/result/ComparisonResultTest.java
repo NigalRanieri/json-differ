@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 class ComparisonResultTest {
@@ -284,5 +285,263 @@ class ComparisonResultTest {
 
     assertThrows(
         IllegalArgumentException.class, () -> result.format(ComparisonResultFormat.TRAVERSAL, -1));
+  }
+
+  @Test
+  void shouldFilterDifferencesByType() {
+    Difference valueMismatch =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference missingField =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    Difference secondValueMismatch =
+        new Difference(
+            "$.city",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Rome"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Milan"));
+
+    ComparisonResult result =
+        new ComparisonResult(Arrays.asList(valueMismatch, missingField, secondValueMismatch));
+
+    ComparisonResult filtered = result.filter(DifferenceType.VALUE_MISMATCH);
+
+    assertEquals(Arrays.asList(valueMismatch, secondValueMismatch), filtered.getDifferences());
+  }
+
+  @Test
+  void shouldBeEqualWhenFilteringRemovesAllDifferences() {
+    Difference difference =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(difference));
+
+    ComparisonResult filtered = result.filter(DifferenceType.MISSING_FIELD);
+
+    assertTrue(filtered.isEqual());
+    assertFalse(result.isEqual());
+  }
+
+  @Test
+  void shouldFilterDifferencesByMultipleTypes() {
+    Difference valueMismatch =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference missingField =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    Difference caseMismatch =
+        new Difference(
+            "$.status",
+            DifferenceType.CASE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "ACTIVE"),
+            DifferenceValue.of(DifferenceValueType.STRING, "active"));
+
+    ComparisonResult result =
+        new ComparisonResult(Arrays.asList(valueMismatch, missingField, caseMismatch));
+
+    ComparisonResult filtered =
+        result.filter(DifferenceType.VALUE_MISMATCH, DifferenceType.CASE_MISMATCH);
+
+    assertEquals(Arrays.asList(valueMismatch, caseMismatch), filtered.getDifferences());
+  }
+
+  @Test
+  void shouldReturnEmptyResultWhenNoDifferenceTypesMatch() {
+    Difference difference =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(difference));
+
+    ComparisonResult filtered =
+        result.filter(DifferenceType.MISSING_FIELD, DifferenceType.UNEXPECTED_FIELD);
+
+    assertTrue(filtered.isEqual());
+    assertTrue(filtered.getDifferences().isEmpty());
+  }
+
+  @Test
+  void shouldNotModifyOriginalResultWhenFilteringByMultipleTypes() {
+    Difference valueMismatch =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference missingField =
+        new Difference(
+            "$.age",
+            DifferenceType.MISSING_FIELD,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 30),
+            DifferenceValue.missing());
+
+    ComparisonResult result = new ComparisonResult(Arrays.asList(valueMismatch, missingField));
+
+    result.filter(DifferenceType.VALUE_MISMATCH);
+
+    assertEquals(Arrays.asList(valueMismatch, missingField), result.getDifferences());
+  }
+
+  @Test
+  void shouldFilterValueMismatchesByExpectedValuePattern() {
+    Difference emailMismatch =
+        new Difference(
+            "$.email",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "alice@example.com"),
+            DifferenceValue.of(DifferenceValueType.STRING, "invalid"));
+
+    Difference nameMismatch =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    ComparisonResult result = new ComparisonResult(Arrays.asList(emailMismatch, nameMismatch));
+
+    ComparisonResult filtered =
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+
+    assertEquals(Collections.singletonList(emailMismatch), filtered.getDifferences());
+  }
+
+  @Test
+  void shouldFilterValueMismatchesByActualValuePattern() {
+    Difference emailMismatch =
+        new Difference(
+            "$.email",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "invalid"),
+            DifferenceValue.of(DifferenceValueType.STRING, "alice@example.com"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(emailMismatch));
+
+    ComparisonResult filtered =
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+
+    assertEquals(Collections.singletonList(emailMismatch), filtered.getDifferences());
+  }
+
+  @Test
+  void shouldIgnoreNonValueMismatchDifferencesWhenFilteringByPattern() {
+    Difference caseMismatch =
+        new Difference(
+            "$.email",
+            DifferenceType.CASE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "ALICE@EXAMPLE.COM"),
+            DifferenceValue.of(DifferenceValueType.STRING, "alice@example.com"));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(caseMismatch));
+
+    ComparisonResult filtered =
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+
+    assertTrue(filtered.getDifferences().isEmpty());
+  }
+
+  @Test
+  void shouldIgnoreNonStringValueMismatchesWhenFilteringByPattern() {
+    Difference numericMismatch =
+        new Difference(
+            "$.count",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.NUMBER, 10),
+            DifferenceValue.of(DifferenceValueType.NUMBER, 20));
+
+    ComparisonResult result = new ComparisonResult(Collections.singletonList(numericMismatch));
+
+    ComparisonResult filtered = result.filterValueMismatches(Pattern.compile("\\d+"));
+
+    assertTrue(filtered.getDifferences().isEmpty());
+  }
+
+  @Test
+  void shouldPreserveOrderWhenFilteringValueMismatchesByPattern() {
+    Difference first =
+        new Difference(
+            "$.primaryEmail",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "first@example.com"),
+            DifferenceValue.of(DifferenceValueType.STRING, "invalid"));
+
+    Difference ignored =
+        new Difference(
+            "$.name",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "Alice"),
+            DifferenceValue.of(DifferenceValueType.STRING, "Bob"));
+
+    Difference second =
+        new Difference(
+            "$.secondaryEmail",
+            DifferenceType.VALUE_MISMATCH,
+            DifferenceValue.of(DifferenceValueType.STRING, "invalid"),
+            DifferenceValue.of(DifferenceValueType.STRING, "second@example.com"));
+
+    ComparisonResult result = new ComparisonResult(Arrays.asList(first, ignored, second));
+
+    ComparisonResult filtered =
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+
+    assertEquals(Arrays.asList(first, second), filtered.getDifferences());
+  }
+
+  @Test
+  void shouldRejectNullPatternWhenFilteringValueMismatches() {
+    ComparisonResult result = new ComparisonResult(Collections.emptyList());
+
+    assertThrows(NullPointerException.class, () -> result.filterValueMismatches(null));
+  }
+
+  @Test
+  void rejectsNullDifferenceTypesArray() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":1}", "{\"value\":2}");
+
+    assertThrows(NullPointerException.class, () -> result.filter((DifferenceType[]) null));
+  }
+
+  @Test
+  void rejectsNullDifferenceType() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":1}", "{\"value\":2}");
+
+    assertThrows(
+        NullPointerException.class, () -> result.filter(DifferenceType.VALUE_MISMATCH, null));
+  }
+
+  @Test
+  void filteringWithNoTypesReturnsEmptyResult() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":1}", "{\"value\":2}");
+
+    ComparisonResult filtered = result.filter();
+
+    assertTrue(filtered.isEqual());
+    assertTrue(filtered.getDifferences().isEmpty());
   }
 }

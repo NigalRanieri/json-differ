@@ -2,6 +2,8 @@ package io.github.nigalranieri.jsondiffer.result;
 
 import io.github.nigalranieri.jsondiffer.internal.format.TableFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Immutable result of a JSON comparison.
@@ -109,7 +111,28 @@ public final class ComparisonResult {
    * @throws IllegalArgumentException if {@code maxCellWidth} is not greater than zero
    */
   public String format(ComparisonResultFormat format, int maxCellWidth) {
+    return format(format, maxCellWidth, "EXPECTED", "ACTUAL");
+  }
+
+  /**
+   * Formats this result using the requested presentation mode, maximum table cell width, and
+   * expected/actual column labels.
+   *
+   * @param format the desired result format
+   * @param maxCellWidth the maximum width of each table cell; must be greater than zero
+   * @param expectedLabel the expected-value column label
+   * @param actualLabel the actual-value column label
+   * @return a human-readable representation of this comparison result
+   * @throws NullPointerException if {@code format}, {@code expectedLabel}, or {@code actualLabel}
+   *     is {@code null}
+   * @throws IllegalArgumentException if {@code maxCellWidth} is not greater than zero
+   */
+  public String format(
+      ComparisonResultFormat format, int maxCellWidth, String expectedLabel, String actualLabel) {
+
     Objects.requireNonNull(format, "format");
+    Objects.requireNonNull(expectedLabel, "expectedLabel");
+    Objects.requireNonNull(actualLabel, "actualLabel");
 
     if (maxCellWidth <= 0) {
       throw new IllegalArgumentException("Maximum cell width must be greater than zero");
@@ -120,10 +143,68 @@ public final class ComparisonResult {
     }
 
     if (format == ComparisonResultFormat.GROUPED) {
-      return formatGrouped(maxCellWidth);
+      return formatGrouped(maxCellWidth, expectedLabel, actualLabel);
     }
 
-    return formatTraversal(maxCellWidth);
+    return formatTraversal(maxCellWidth, expectedLabel, actualLabel);
+  }
+
+  /**
+   * Returns a new comparison result containing only differences of the specified types.
+   *
+   * <p>The original result is not modified, and retained differences preserve their original order.
+   * If no types are supplied, the returned result contains no differences.
+   *
+   * @param types the difference types to retain
+   * @return a new filtered comparison result
+   * @throws NullPointerException if {@code types} is {@code null} or contains a {@code null}
+   *     element
+   */
+  public ComparisonResult filter(DifferenceType... types) {
+    Objects.requireNonNull(types, "types");
+
+    for (DifferenceType type : types) {
+      Objects.requireNonNull(type, "type");
+    }
+    List<DifferenceType> includedTypes = Arrays.asList(types);
+
+    List<Difference> filtered =
+        differences.stream()
+            .filter(difference -> includedTypes.contains(difference.getType()))
+            .collect(Collectors.toList());
+
+    return new ComparisonResult(filtered);
+  }
+
+  /**
+   * Returns a new comparison result containing only {@link DifferenceType#VALUE_MISMATCH
+   * VALUE_MISMATCH} differences whose expected or actual string value matches the supplied regular
+   * expression.
+   *
+   * <p>The pattern is matched against the complete string value using {@link
+   * java.util.regex.Matcher#matches()} semantics. Non-string value mismatches are not retained.
+   * Other difference types, including {@link DifferenceType#CASE_MISMATCH CASE_MISMATCH}, are not
+   * included.
+   *
+   * <p>The original result is not modified, and retained differences preserve their original order.
+   *
+   * @param pattern the regular expression used to match expected or actual string values
+   * @return a new filtered comparison result
+   * @throws NullPointerException if {@code pattern} is {@code null}
+   */
+  public ComparisonResult filterValueMismatches(Pattern pattern) {
+    Objects.requireNonNull(pattern, "pattern");
+
+    List<Difference> filtered =
+        differences.stream()
+            .filter(difference -> difference.getType() == DifferenceType.VALUE_MISMATCH)
+            .filter(
+                difference ->
+                    matchesPattern(difference.getExpected(), pattern)
+                        || matchesPattern(difference.getActual(), pattern))
+            .collect(Collectors.toList());
+
+    return new ComparisonResult(filtered);
   }
 
   /**
@@ -136,8 +217,8 @@ public final class ComparisonResult {
     return format(ComparisonResultFormat.TRAVERSAL);
   }
 
-  private String formatTraversal(int maxCellWidth) {
-    List<String> headers = Arrays.asList("PATH", "TYPE", "EXPECTED", "ACTUAL");
+  private String formatTraversal(int maxCellWidth, String expectedLabel, String actualLabel) {
+    List<String> headers = Arrays.asList("PATH", "TYPE", expectedLabel, actualLabel);
 
     List<List<String>> rows = new ArrayList<>();
 
@@ -160,7 +241,7 @@ public final class ComparisonResult {
     return "JSON differs (" + differences.size() + " differences):";
   }
 
-  private String formatGrouped(int maxCellWidth) {
+  private String formatGrouped(int maxCellWidth, String expectedLabel, String actualLabel) {
     Map<DifferenceType, List<Difference>> grouped = new LinkedHashMap<>();
 
     for (Difference difference : differences) {
@@ -174,7 +255,7 @@ public final class ComparisonResult {
       group.add(difference);
     }
 
-    List<String> headers = Arrays.asList("TYPE", "PATH", "EXPECTED", "ACTUAL");
+    List<String> headers = Arrays.asList("TYPE", "PATH", expectedLabel, actualLabel);
 
     List<List<String>> rows = new ArrayList<>();
 
@@ -193,5 +274,10 @@ public final class ComparisonResult {
         + System.lineSeparator()
         + System.lineSeparator()
         + TableFormatter.format(headers, rows, maxCellWidth);
+  }
+
+  private boolean matchesPattern(DifferenceValue value, Pattern pattern) {
+    return value.getType() == DifferenceValueType.STRING
+        && pattern.matcher((String) value.getValue()).matches();
   }
 }

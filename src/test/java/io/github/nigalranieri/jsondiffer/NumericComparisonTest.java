@@ -167,4 +167,12 @@ class NumericComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void valuesExactlyAtToleranceAreEqual() {
+    ComparisonResult result =
+        JsonCompare.builder().numericTolerance(0.1).compare("{\"value\":10.0}", "{\"value\":10.1}");
+
+    assertTrue(result.isEqual());
+  }
 }

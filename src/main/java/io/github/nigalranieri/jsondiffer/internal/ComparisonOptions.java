@@ -19,6 +19,7 @@ public final class ComparisonOptions {
   private final Set<String> nullAndMissingEqualPaths;
   private final boolean ignoreCase;
   private final Set<String> ignoreCasePaths;
+  private final List<String> includedPaths;
 
   public ComparisonOptions(
       boolean ignoreArrayOrder,
@@ -29,7 +30,8 @@ public final class ComparisonOptions {
       List<PathTolerance> pathNumericTolerances,
       Set<String> nullAndMissingEqualPaths,
       boolean ignoreCase,
-      Set<String> ignoreCasePaths) {
+      Set<String> ignoreCasePaths,
+      List<String> includedPaths) {
 
     this.ignoreArrayOrder = ignoreArrayOrder;
     this.ignoredPaths = Collections.unmodifiableSet(new HashSet<>(ignoredPaths));
@@ -43,6 +45,7 @@ public final class ComparisonOptions {
         Collections.unmodifiableSet(new HashSet<>(nullAndMissingEqualPaths));
     this.ignoreCase = ignoreCase;
     this.ignoreCasePaths = Collections.unmodifiableSet(new HashSet<>(ignoreCasePaths));
+    this.includedPaths = Collections.unmodifiableList(new ArrayList<>(includedPaths));
   }
 
   public Double getNumericTolerance(String path) {
@@ -107,5 +110,9 @@ public final class ComparisonOptions {
     }
 
     return false;
+  }
+
+  public List<String> getIncludedPaths() {
+    return includedPaths;
   }
 }

@@ -3,10 +3,12 @@ package io.github.nigalranieri.jsondiffer.config;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.nigalranieri.jsondiffer.result.ComparisonResultFormat;
+import io.github.nigalranieri.jsondiffer.result.DifferenceType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +40,7 @@ public class JsonDifferConfigLoaderTest {
             + "  columns:\n"
             + "    maxCellWidth: 50\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertEquals(
         Collections.singletonList("$.metadata.timestamp"), config.getComparison().getIgnorePaths());
@@ -64,7 +66,7 @@ public class JsonDifferConfigLoaderTest {
 
   @Test
   void usesEmptyConfigurationWhenSectionsAreOmitted() throws IOException {
-    JsonDifferConfig config = JsonDifferConfigLoader.load("{}");
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml("{}");
 
     assertNotNull(config);
     assertNotNull(config.getComparison());
@@ -86,7 +88,7 @@ public class JsonDifferConfigLoaderTest {
   void preservesDefaultsWhenNestedConfigurationIsPartial() throws IOException {
     String yaml = "comparison:\n" + "  ignoreCase:\n" + "    globally: true\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertTrue(config.getComparison().getIgnoreCase().isGlobally());
 
@@ -112,7 +114,7 @@ public class JsonDifferConfigLoaderTest {
             + "  ignoreCase: null\n"
             + "output: null\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertNotNull(config.getComparison().getArrayOrder());
     assertNotNull(config.getComparison().getNullAndMissing());
@@ -135,7 +137,7 @@ public class JsonDifferConfigLoaderTest {
             + "  ignoreCase:\n"
             + "    paths: null\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertNotNull(config.getComparison().getIgnorePaths());
     assertNotNull(config.getComparison().getArrayOrder().getIgnoreAt());
@@ -154,7 +156,7 @@ public class JsonDifferConfigLoaderTest {
   void rejectsUnknownConfigurationProperties() {
     String yaml = "comparison:\n" + "  ignoreCase:\n" + "    globaly: true\n";
 
-    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.loadYaml(yaml));
   }
 
   @Test
@@ -165,26 +167,26 @@ public class JsonDifferConfigLoaderTest {
             + "    - $.timestamp\n"
             + "   invalid-indentation: true\n";
 
-    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.loadYaml(yaml));
   }
 
   @Test
   void rejectsZeroMaximumCellWidth() {
     String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: 0\n";
 
-    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.loadYaml(yaml));
   }
 
   @Test
   void rejectsNegativeMaximumCellWidth() {
     String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: -10\n";
 
-    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.loadYaml(yaml));
   }
 
   @Test
   void loadsExplicitNullYamlAsDefaultConfiguration() throws IOException {
-    JsonDifferConfig config = JsonDifferConfigLoader.load("null");
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml("null");
 
     assertNotNull(config);
     assertNotNull(config.getComparison());
@@ -210,7 +212,7 @@ public class JsonDifferConfigLoaderTest {
 
   @Test
   void treatsBlankYamlAsDefaultConfiguration() throws IOException {
-    JsonDifferConfig config = JsonDifferConfigLoader.load("");
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml("");
 
     assertNotNull(config);
     assertNotNull(config.getComparison());
@@ -223,10 +225,240 @@ public class JsonDifferConfigLoaderTest {
 
   @Test
   void treatsWhitespaceOnlyYamlAsDefaultConfiguration() throws IOException {
-    JsonDifferConfig config = JsonDifferConfigLoader.load("   \n\t  ");
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml("   \n\t  ");
 
     assertNotNull(config);
     assertNotNull(config.getComparison());
     assertNotNull(config.getOutput());
+  }
+
+  @Test
+  void loadsJsonConfiguration() throws IOException {
+    String json =
+        "{"
+            + "\"comparison\":{"
+            + "\"ignorePaths\":[\"$.metadata.timestamp\"],"
+            + "\"includePaths\":[\"$.user.name\"],"
+            + "\"ignoreCase\":{"
+            + "\"globally\":true"
+            + "}"
+            + "},"
+            + "\"output\":{"
+            + "\"format\":\"grouped\","
+            + "\"columns\":{"
+            + "\"maxCellWidth\":50"
+            + "}"
+            + "}"
+            + "}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
+
+    assertEquals(
+        Collections.singletonList("$.metadata.timestamp"), config.getComparison().getIgnorePaths());
+
+    assertEquals(
+        Collections.singletonList("$.user.name"), config.getComparison().getIncludePaths());
+
+    assertTrue(config.getComparison().getIgnoreCase().isGlobally());
+
+    assertEquals(ComparisonResultFormat.GROUPED, config.getOutput().getFormat());
+
+    assertEquals(Integer.valueOf(50), config.getOutput().getColumns().getMaxCellWidth());
+  }
+
+  @Test
+  void treatsBlankJsonAsDefaultConfiguration() throws IOException {
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson("");
+
+    assertNotNull(config);
+    assertNotNull(config.getComparison());
+    assertNotNull(config.getOutput());
+  }
+
+  @Test
+  void loadsExplicitNullJsonAsDefaultConfiguration() throws IOException {
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson("null");
+
+    assertNotNull(config);
+    assertNotNull(config.getComparison());
+    assertNotNull(config.getOutput());
+  }
+
+  @Test
+  void rejectsMalformedJson() {
+    String json = "{" + "\"comparison\": {" + "\"ignorePaths\": [\"$.timestamp\"]" + "}";
+
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.loadJson(json));
+  }
+
+  @Test
+  void loadsJsonConfigurationFile() throws IOException {
+    Path path = Files.createTempFile("json-differ-config-", ".json");
+
+    try {
+      Files.write(
+          path,
+          Collections.singletonList("{\"comparison\":{\"includePaths\":[\"$.user.name\"]}}"),
+          StandardCharsets.UTF_8);
+
+      JsonDifferConfig config = JsonDifferConfigLoader.load(path);
+
+      assertEquals(
+          Collections.singletonList("$.user.name"), config.getComparison().getIncludePaths());
+    } finally {
+      Files.deleteIfExists(path);
+    }
+  }
+
+  @Test
+  void rejectsUnknownJsonConfigurationProperties() {
+    String json =
+        "{" + "\"comparison\":{" + "\"ignoreCase\":{" + "\"globaly\":true" + "}" + "}" + "}";
+
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.loadJson(json));
+  }
+
+  @Test
+  void yamlAndJsonConfigurationsProduceEquivalentSettings() throws IOException {
+    String yaml =
+        "comparison:\n"
+            + "  ignorePaths:\n"
+            + "    - $.metadata\n"
+            + "  includePaths:\n"
+            + "    - $.user\n"
+            + "  ignoreCase:\n"
+            + "    globally: true\n";
+
+    String json =
+        "{"
+            + "\"comparison\":{"
+            + "\"ignorePaths\":[\"$.metadata\"],"
+            + "\"includePaths\":[\"$.user\"],"
+            + "\"ignoreCase\":{\"globally\":true}"
+            + "}"
+            + "}";
+
+    JsonDifferConfig yamlConfig = JsonDifferConfigLoader.loadYaml(yaml);
+    JsonDifferConfig jsonConfig = JsonDifferConfigLoader.loadJson(json);
+
+    assertEquals(
+        yamlConfig.getComparison().getIgnorePaths(), jsonConfig.getComparison().getIgnorePaths());
+
+    assertEquals(
+        yamlConfig.getComparison().getIncludePaths(), jsonConfig.getComparison().getIncludePaths());
+
+    assertEquals(
+        yamlConfig.getComparison().getIgnoreCase().isGlobally(),
+        jsonConfig.getComparison().getIgnoreCase().isGlobally());
+  }
+
+  @Test
+  void loadsCustomColumnLabelsFromYaml() throws IOException {
+    String yaml =
+        "output:\n" + "  columns:\n" + "    expectedLabel: Source\n" + "    actualLabel: Target\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
+
+    assertEquals("Source", config.getOutput().getColumns().getExpectedLabel());
+    assertEquals("Target", config.getOutput().getColumns().getActualLabel());
+  }
+
+  @Test
+  void loadsCustomColumnLabelsFromJson() throws IOException {
+    String json =
+        "{"
+            + "\"output\":{"
+            + "\"columns\":{"
+            + "\"expectedLabel\":\"Source\","
+            + "\"actualLabel\":\"Target\""
+            + "}"
+            + "}"
+            + "}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
+
+    assertEquals("Source", config.getOutput().getColumns().getExpectedLabel());
+    assertEquals("Target", config.getOutput().getColumns().getActualLabel());
+  }
+
+  @Test
+  void usesDefaultColumnLabels() {
+    ColumnConfig columns = new ColumnConfig();
+
+    assertEquals("EXPECTED", columns.getExpectedLabel());
+    assertEquals("ACTUAL", columns.getActualLabel());
+  }
+
+  @Test
+  void loadsResultConfigurationFromJson() throws IOException {
+    String json =
+        "{"
+            + "\"result\":{"
+            + "\"types\":[\"VALUE_MISMATCH\",\"MISSING_FIELD\"],"
+            + "\"valueMismatchPattern\":\"^[^@]+@[^@]+$\""
+            + "}"
+            + "}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
+
+    assertEquals(
+        Arrays.asList(DifferenceType.VALUE_MISMATCH, DifferenceType.MISSING_FIELD),
+        config.getResult().getTypes());
+
+    assertEquals("^[^@]+@[^@]+$", config.getResult().getValueMismatchPattern());
+  }
+
+  @Test
+  void loadsResultConfigurationFromYaml() throws IOException {
+    String yaml =
+        "result:\n"
+            + "  types:\n"
+            + "    - VALUE_MISMATCH\n"
+            + "    - MISSING_FIELD\n"
+            + "  valueMismatchPattern: \"^[^@]+@[^@]+$\"\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
+
+    assertEquals(
+        Arrays.asList(DifferenceType.VALUE_MISMATCH, DifferenceType.MISSING_FIELD),
+        config.getResult().getTypes());
+
+    assertEquals("^[^@]+@[^@]+$", config.getResult().getValueMismatchPattern());
+  }
+
+  @Test
+  void loadsBlankJsonFileAsDefaultConfiguration() throws IOException {
+    Path file = Files.createTempFile("json-differ-config", ".json");
+
+    try {
+      Files.write(file, new byte[0]);
+
+      JsonDifferConfig config = JsonDifferConfigLoader.load(file);
+
+      assertNotNull(config);
+      assertNotNull(config.getComparison());
+      assertNotNull(config.getResult());
+      assertNotNull(config.getOutput());
+    } finally {
+      Files.deleteIfExists(file);
+    }
+  }
+
+  @Test
+  void loadsBlankYamlFileAsDefaultConfiguration() throws IOException {
+    Path file = Files.createTempFile("json-differ-config", ".yaml");
+
+    try {
+      Files.write(file, new byte[0]);
+
+      JsonDifferConfig config = JsonDifferConfigLoader.load(file);
+
+      assertNotNull(config);
+      assertNotNull(config.getComparison());
+      assertNotNull(config.getResult());
+      assertNotNull(config.getOutput());
+    } finally {
+      Files.deleteIfExists(file);
+    }
   }
 }

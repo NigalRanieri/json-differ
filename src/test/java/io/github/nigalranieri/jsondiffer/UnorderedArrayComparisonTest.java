@@ -261,4 +261,36 @@ class UnorderedArrayComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void shouldReportMissingElementWhenIgnoringArrayOrder() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder()
+            .compare("{\"values\":[1,2,3]}", "{\"values\":[3,1]}");
+
+    assertEquals(1, result.getDifferences().size());
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceType.MISSING_ELEMENT, difference.getType());
+    assertEquals(2, difference.getExpected().getValue());
+    assertTrue(difference.getActual().isMissing());
+  }
+
+  @Test
+  void shouldReportUnexpectedElementWhenIgnoringArrayOrder() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreArrayOrder()
+            .compare("{\"values\":[1,2]}", "{\"values\":[3,1,2]}");
+
+    assertEquals(1, result.getDifferences().size());
+
+    Difference difference = result.getDifferences().get(0);
+
+    assertEquals(DifferenceType.UNEXPECTED_ELEMENT, difference.getType());
+    assertTrue(difference.getExpected().isMissing());
+    assertEquals(3, difference.getActual().getValue());
+  }
 }
