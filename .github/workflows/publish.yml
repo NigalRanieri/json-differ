@@ -35,10 +35,10 @@ jobs:
           java-version: '17'
           cache: maven
           server-id: central
-          server-username-env-var: MAVEN_CENTRAL_USERNAME
-          server-password-env-var: MAVEN_CENTRAL_PASSWORD
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase-env-var: GPG_PASSPHRASE
+          gpg-passphrase: GPG_PASSPHRASE
 
       - name: Validate tag format and POM version
         shell: bash
