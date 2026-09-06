@@ -29,7 +29,7 @@ public final class JsonCompare {
    * @return {@code true} if the documents are equal; {@code false} otherwise
    * @throws NullPointerException if either argument is {@code null}
    */
-  public static boolean equals(String first, String second) {
+  public static boolean areEqual(String first, String second) {
     return compare(first, second).isEqual();
   }
 
@@ -74,7 +74,30 @@ public final class JsonCompare {
 
     Objects.requireNonNull(config, "config");
 
-    ComparisonResult result = fromConfig(config).compare(expected, actual);
+    ComparisonResult result = comparatorFromConfig(config).compare(expected, actual);
+
+    return config.getResult().apply(result);
+  }
+
+  /**
+   * Compares two JSON files using the supplied configuration and applies the configured result
+   * filtering.
+   *
+   * <p>Comparison settings determine how differences are detected, while result settings determine
+   * which detected differences are retained. Output formatting is not applied by this method.
+   *
+   * @param expected the path to the expected JSON file
+   * @param actual the path to the actual JSON file
+   * @param config the configuration to apply
+   * @return the filtered comparison result
+   * @throws NullPointerException if {@code expected}, {@code actual}, or {@code config} is {@code
+   *     null}
+   */
+  public static ComparisonResult compare(Path expected, Path actual, JsonDifferConfig config) {
+
+    Objects.requireNonNull(config, "config");
+
+    ComparisonResult result = comparatorFromConfig(config).compare(expected, actual);
 
     return config.getResult().apply(result);
   }
@@ -89,7 +112,7 @@ public final class JsonCompare {
    * @return a reusable configured comparator
    * @throws NullPointerException if {@code config} is {@code null}
    */
-  public static JsonComparator fromConfig(JsonDifferConfig config) {
+  public static JsonComparator comparatorFromConfig(JsonDifferConfig config) {
     Objects.requireNonNull(config, "config");
 
     JsonCompareBuilder builder = builder();
@@ -167,10 +190,10 @@ public final class JsonCompare {
    * @throws NullPointerException if {@code configPath} is {@code null}
    * @throws IOException if the configuration file cannot be read or parsed
    */
-  public static JsonComparator fromConfig(Path configPath) throws IOException {
+  public static JsonComparator comparatorFromConfig(Path configPath) throws IOException {
     Objects.requireNonNull(configPath, "configPath");
 
-    return fromConfig(JsonDifferConfigLoader.load(configPath));
+    return comparatorFromConfig(JsonDifferConfigLoader.load(configPath));
   }
 
   /**

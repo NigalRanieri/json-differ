@@ -347,14 +347,15 @@ Use `JsonCompare.fromConfig(Path)` when configuration is stored in a file:
 ```java
 import io.github.nigalranieri.jsondiffer.JsonCompare;
 import io.github.nigalranieri.jsondiffer.JsonComparator;
+
 import java.nio.file.Paths;
 
 JsonComparator comparator =
-    JsonCompare.fromConfig(
-        Paths.get("json-differ.yml"));
+        JsonCompare.comparatorFromConfig(
+                Paths.get("json-differ.yml"));
 
 ComparisonResult result =
-    comparator.compare(expected, actual);
+        comparator.compare(expected, actual);
 ```
 
 ### Load configuration from YAML text
@@ -376,7 +377,7 @@ JsonDifferConfig config =
         JsonDifferConfigLoader.loadYaml(yaml);
 
 JsonComparator comparator =
-        JsonCompare.fromConfig(config);
+        JsonCompare.comparatorFromConfig(config);
 
 ComparisonResult result =
         comparator.compare(expected, actual);

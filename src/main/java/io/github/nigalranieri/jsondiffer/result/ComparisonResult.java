@@ -181,7 +181,7 @@ public final class ComparisonResult {
    * @return a new comparison result containing matching value mismatches
    * @throws NullPointerException if {@code pattern} is {@code null}
    */
-  public ComparisonResult filterValueMismatch(Pattern pattern) {
+  public ComparisonResult filterValueMismatches(Pattern pattern) {
     Objects.requireNonNull(pattern, "pattern");
 
     List<Difference> filtered =

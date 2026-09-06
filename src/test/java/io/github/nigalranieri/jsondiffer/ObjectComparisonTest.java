@@ -14,7 +14,7 @@ class ObjectComparisonTest {
     String first = "{\"name\":\"Alice\",\"age\":30}";
     String second = "{\"age\":30,\"name\":\"Alice\"}";
 
-    assertTrue(JsonCompare.equals(first, second));
+    assertTrue(JsonCompare.areEqual(first, second));
   }
 
   @Test
@@ -22,7 +22,7 @@ class ObjectComparisonTest {
     String first = "{\"name\":\"Alice\",\"age\":30}";
     String second = "{\"name\":\"Alice\",\"age\":31}";
 
-    assertFalse(JsonCompare.equals(first, second));
+    assertFalse(JsonCompare.areEqual(first, second));
   }
 
   @Test

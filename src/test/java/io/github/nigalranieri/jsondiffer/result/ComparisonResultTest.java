@@ -427,7 +427,7 @@ class ComparisonResultTest {
     ComparisonResult result = new ComparisonResult(Arrays.asList(emailMismatch, nameMismatch));
 
     ComparisonResult filtered =
-        result.filterValueMismatch(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
 
     assertEquals(Collections.singletonList(emailMismatch), filtered.getDifferences());
   }
@@ -444,7 +444,7 @@ class ComparisonResultTest {
     ComparisonResult result = new ComparisonResult(Collections.singletonList(emailMismatch));
 
     ComparisonResult filtered =
-        result.filterValueMismatch(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
 
     assertEquals(Collections.singletonList(emailMismatch), filtered.getDifferences());
   }
@@ -461,7 +461,7 @@ class ComparisonResultTest {
     ComparisonResult result = new ComparisonResult(Collections.singletonList(caseMismatch));
 
     ComparisonResult filtered =
-        result.filterValueMismatch(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
 
     assertTrue(filtered.getDifferences().isEmpty());
   }
@@ -477,7 +477,7 @@ class ComparisonResultTest {
 
     ComparisonResult result = new ComparisonResult(Collections.singletonList(numericMismatch));
 
-    ComparisonResult filtered = result.filterValueMismatch(Pattern.compile("\\d+"));
+    ComparisonResult filtered = result.filterValueMismatches(Pattern.compile("\\d+"));
 
     assertTrue(filtered.getDifferences().isEmpty());
   }
@@ -508,7 +508,7 @@ class ComparisonResultTest {
     ComparisonResult result = new ComparisonResult(Arrays.asList(first, ignored, second));
 
     ComparisonResult filtered =
-        result.filterValueMismatch(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
+        result.filterValueMismatches(Pattern.compile("^[^@]+@[^@]+\\.[^@]+$"));
 
     assertEquals(Arrays.asList(first, second), filtered.getDifferences());
   }
@@ -517,6 +517,6 @@ class ComparisonResultTest {
   void shouldRejectNullPatternWhenFilteringValueMismatches() {
     ComparisonResult result = new ComparisonResult(Collections.emptyList());
 
-    assertThrows(NullPointerException.class, () -> result.filterValueMismatch(null));
+    assertThrows(NullPointerException.class, () -> result.filterValueMismatches(null));
   }
 }

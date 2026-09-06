@@ -37,7 +37,7 @@ public class ConfigComparisonTest {
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     ComparisonResult result =
-        JsonCompare.fromConfig(config)
+        JsonCompare.comparatorFromConfig(config)
             .compare(
                 "{\"timestamp\":1,\"users\":["
                     + "{\"id\":1,\"email\":\"A@EXAMPLE.COM\",\"score\":10.0,\"nickname\":null},"
@@ -58,7 +58,7 @@ public class ConfigComparisonTest {
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     ComparisonResult result =
-        JsonCompare.fromConfig(config)
+        JsonCompare.comparatorFromConfig(config)
             .compare(
                 "{\"veryLongPropertyName\":\"expected value\"}",
                 "{\"veryLongPropertyName\":\"actual value\"}");
@@ -82,7 +82,7 @@ public class ConfigComparisonTest {
           StandardCharsets.UTF_8);
 
       ComparisonResult result =
-          JsonCompare.fromConfig(configPath)
+          JsonCompare.comparatorFromConfig(configPath)
               .compare("{\"name\":\"Alice\"}", "{\"name\":\"alice\"}");
 
       assertTrue(result.isEqual());
@@ -97,7 +97,7 @@ public class ConfigComparisonTest {
 
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
-    assertThrows(NullPointerException.class, () -> JsonCompare.fromConfig(config));
+    assertThrows(NullPointerException.class, () -> JsonCompare.comparatorFromConfig(config));
   }
 
   @Test
@@ -106,7 +106,7 @@ public class ConfigComparisonTest {
 
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
-    assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.comparatorFromConfig(config));
   }
 
   @Test
@@ -115,7 +115,7 @@ public class ConfigComparisonTest {
 
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
-    assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.comparatorFromConfig(config));
   }
 
   @Test
@@ -135,7 +135,7 @@ public class ConfigComparisonTest {
 
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
-    ComparisonResult result = JsonCompare.fromConfig(config).compare(expected, actual);
+    ComparisonResult result = JsonCompare.comparatorFromConfig(config).compare(expected, actual);
 
     assertEquals(1, result.getDifferences().size());
     assertEquals("$.user.name", result.getDifferences().get(0).getPath());
@@ -148,7 +148,7 @@ public class ConfigComparisonTest {
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     ComparisonResult result =
-        JsonCompare.fromConfig(config)
+        JsonCompare.comparatorFromConfig(config)
             .compare(
                 "{\"user\":{\"name\":\"Alice\",\"age\":30},\"version\":1}",
                 "{\"user\":{\"name\":\"Bob\",\"age\":31},\"version\":2}");
@@ -163,7 +163,7 @@ public class ConfigComparisonTest {
 
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
-    assertThrows(NullPointerException.class, () -> JsonCompare.fromConfig(config));
+    assertThrows(NullPointerException.class, () -> JsonCompare.comparatorFromConfig(config));
   }
 
   @Test
@@ -172,7 +172,7 @@ public class ConfigComparisonTest {
 
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
-    assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
+    assertThrows(IllegalArgumentException.class, () -> JsonCompare.comparatorFromConfig(config));
   }
 
   @Test
@@ -188,7 +188,7 @@ public class ConfigComparisonTest {
     JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
 
     ComparisonResult result =
-        JsonCompare.fromConfig(config)
+        JsonCompare.comparatorFromConfig(config)
             .compare(
                 "{\"email\":\"alice@example.com\",\"name\":\"Alice\",\"status\":\"ACTIVE\",\"age\":30}",
                 "{\"email\":\"bob@example.com\",\"name\":\"Bob\",\"status\":\"active\"}");

@@ -12,7 +12,7 @@ class OrderedArrayComparisonTest {
     String first = "{\"values\":[1,2,3]}";
     String second = "{\"values\":[3,2,1]}";
 
-    assertFalse(JsonCompare.equals(first, second));
+    assertFalse(JsonCompare.areEqual(first, second));
   }
 
   @Test
