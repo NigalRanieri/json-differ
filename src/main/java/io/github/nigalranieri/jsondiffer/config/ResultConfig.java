@@ -1,16 +1,30 @@
 package io.github.nigalranieri.jsondiffer.config;
 
-import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
-import io.github.nigalranieri.jsondiffer.result.Difference;
-import io.github.nigalranieri.jsondiffer.result.DifferenceType;
-import io.github.nigalranieri.jsondiffer.result.DifferenceValue;
-import io.github.nigalranieri.jsondiffer.result.DifferenceValueType;
+import io.github.nigalranieri.jsondiffer.result.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * Configures filtering applied to comparison results.
+ *
+ * <p>Result filtering is applied after comparison and determines which detected differences are
+ * retained in the {@link ComparisonResult}. It does not affect how differences are detected.
+ *
+ * <p>When {@link #getTypes()} is empty, all difference types are eligible to be retained. When one
+ * or more types are configured, only those difference types are eligible.
+ *
+ * <p>A {@linkplain #getValueMismatchPattern() value-mismatch pattern}, when configured, further
+ * filters {@link DifferenceType#VALUE_MISMATCH VALUE_MISMATCH} differences. A value mismatch is
+ * retained when either its expected or actual string value matches the entire regular expression.
+ * Non-string value mismatches do not match the pattern. Other eligible difference types are not
+ * affected by the pattern.
+ *
+ * <p>When both difference types and a value-mismatch pattern are configured, the type filter first
+ * determines which difference types are eligible, and the pattern then further restricts eligible
+ * {@code VALUE_MISMATCH} differences.
+ */
 public final class ResultConfig {
 
   private List<DifferenceType> types = new ArrayList<>();
@@ -24,7 +38,7 @@ public final class ResultConfig {
    * @return the retained difference types
    */
   public List<DifferenceType> getTypes() {
-    return Collections.unmodifiableList(types);
+    return types;
   }
 
   /**

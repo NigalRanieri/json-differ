@@ -425,4 +425,40 @@ public class JsonDifferConfigLoaderTest {
 
     assertEquals("^[^@]+@[^@]+$", config.getResult().getValueMismatchPattern());
   }
+
+  @Test
+  void loadsBlankJsonFileAsDefaultConfiguration() throws IOException {
+    Path file = Files.createTempFile("json-differ-config", ".json");
+
+    try {
+      Files.write(file, new byte[0]);
+
+      JsonDifferConfig config = JsonDifferConfigLoader.load(file);
+
+      assertNotNull(config);
+      assertNotNull(config.getComparison());
+      assertNotNull(config.getResult());
+      assertNotNull(config.getOutput());
+    } finally {
+      Files.deleteIfExists(file);
+    }
+  }
+
+  @Test
+  void loadsBlankYamlFileAsDefaultConfiguration() throws IOException {
+    Path file = Files.createTempFile("json-differ-config", ".yaml");
+
+    try {
+      Files.write(file, new byte[0]);
+
+      JsonDifferConfig config = JsonDifferConfigLoader.load(file);
+
+      assertNotNull(config);
+      assertNotNull(config.getComparison());
+      assertNotNull(config.getResult());
+      assertNotNull(config.getOutput());
+    } finally {
+      Files.deleteIfExists(file);
+    }
+  }
 }

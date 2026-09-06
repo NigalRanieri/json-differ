@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Objects;
@@ -57,14 +59,15 @@ public final class JsonDifferConfigLoader {
   public static JsonDifferConfig load(Path path) throws IOException {
     Objects.requireNonNull(path, "path");
 
-    ObjectMapper mapper =
-        path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".json")
-            ? JSON_MAPPER
-            : YAML_MAPPER;
+    String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 
-    JsonDifferConfig config = mapper.readValue(path.toFile(), JsonDifferConfig.class);
+    String fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
 
-    return config == null ? new JsonDifferConfig() : config;
+    if (fileName.endsWith(".json")) {
+      return loadJson(content);
+    }
+
+    return loadYaml(content);
   }
 
   /**
