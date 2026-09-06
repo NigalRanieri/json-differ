@@ -58,6 +58,28 @@ public final class JsonCompare {
   }
 
   /**
+   * Compares two JSON documents using the supplied configuration and applies the configured result
+   * filtering.
+   *
+   * <p>Comparison settings determine how differences are detected, while result settings determine
+   * which detected differences are retained. Output formatting is not applied by this method.
+   *
+   * @param expected the expected JSON document
+   * @param actual the actual JSON document
+   * @param config the configuration to apply
+   * @return the filtered comparison result
+   * @throws NullPointerException if {@code config} is {@code null}
+   */
+  public static ComparisonResult compare(String expected, String actual, JsonDifferConfig config) {
+
+    Objects.requireNonNull(config, "config");
+
+    ComparisonResult result = fromConfig(config).compare(expected, actual);
+
+    return config.getResult().apply(result);
+  }
+
+  /**
    * Creates a configured comparator from the supplied configuration.
    *
    * <p>The configuration is translated through the same builder API used for programmatic

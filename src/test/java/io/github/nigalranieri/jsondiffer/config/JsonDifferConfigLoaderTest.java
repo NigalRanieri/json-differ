@@ -3,10 +3,12 @@ package io.github.nigalranieri.jsondiffer.config;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.nigalranieri.jsondiffer.result.ComparisonResultFormat;
+import io.github.nigalranieri.jsondiffer.result.DifferenceType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
@@ -385,5 +387,42 @@ public class JsonDifferConfigLoaderTest {
 
     assertEquals("EXPECTED", columns.getExpectedLabel());
     assertEquals("ACTUAL", columns.getActualLabel());
+  }
+
+  @Test
+  void loadsResultConfigurationFromJson() throws IOException {
+    String json =
+        "{"
+            + "\"result\":{"
+            + "\"types\":[\"VALUE_MISMATCH\",\"MISSING_FIELD\"],"
+            + "\"valueMismatchPattern\":\"^[^@]+@[^@]+$\""
+            + "}"
+            + "}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
+
+    assertEquals(
+        Arrays.asList(DifferenceType.VALUE_MISMATCH, DifferenceType.MISSING_FIELD),
+        config.getResult().getTypes());
+
+    assertEquals("^[^@]+@[^@]+$", config.getResult().getValueMismatchPattern());
+  }
+
+  @Test
+  void loadsResultConfigurationFromYaml() throws IOException {
+    String yaml =
+        "result:\n"
+            + "  types:\n"
+            + "    - VALUE_MISMATCH\n"
+            + "    - MISSING_FIELD\n"
+            + "  valueMismatchPattern: \"^[^@]+@[^@]+$\"\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
+
+    assertEquals(
+        Arrays.asList(DifferenceType.VALUE_MISMATCH, DifferenceType.MISSING_FIELD),
+        config.getResult().getTypes());
+
+    assertEquals("^[^@]+@[^@]+$", config.getResult().getValueMismatchPattern());
   }
 }

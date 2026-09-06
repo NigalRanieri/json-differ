@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfig;
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfigLoader;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
+import io.github.nigalranieri.jsondiffer.result.DifferenceType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -172,5 +173,72 @@ public class ConfigComparisonTest {
     JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
+  }
+
+  @Test
+  void appliesResultFilteringFromConfiguration() throws IOException {
+    String json =
+        "{"
+            + "\"result\":{"
+            + "\"types\":[\"VALUE_MISMATCH\",\"MISSING_FIELD\"],"
+            + "\"valueMismatchPattern\":\"^[^@]+@[^@]+$\""
+            + "}"
+            + "}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
+
+    ComparisonResult result =
+        JsonCompare.fromConfig(config)
+            .compare(
+                "{\"email\":\"alice@example.com\",\"name\":\"Alice\",\"status\":\"ACTIVE\",\"age\":30}",
+                "{\"email\":\"bob@example.com\",\"name\":\"Bob\",\"status\":\"active\"}");
+
+    ComparisonResult filtered = config.getResult().apply(result);
+
+    assertEquals(2, filtered.getDifferences().size());
+
+    assertEquals("$.email", filtered.getDifferences().get(0).getPath());
+    assertEquals(DifferenceType.VALUE_MISMATCH, filtered.getDifferences().get(0).getType());
+
+    assertEquals("$.age", filtered.getDifferences().get(1).getPath());
+    assertEquals(DifferenceType.MISSING_FIELD, filtered.getDifferences().get(1).getType());
+  }
+
+  @Test
+  void appliesComparisonAndResultConfiguration() throws IOException {
+    String json =
+        "{"
+            + "\"comparison\":{"
+            + "\"includePaths\":[\"$.user\"]"
+            + "},"
+            + "\"result\":{"
+            + "\"types\":[\"VALUE_MISMATCH\"]"
+            + "}"
+            + "}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
+
+    ComparisonResult result =
+        JsonCompare.compare(
+            "{\"user\":{\"name\":\"Alice\",\"status\":\"ACTIVE\"},\"version\":1}",
+            "{\"user\":{\"name\":\"Bob\",\"status\":\"active\"},\"version\":2}",
+            config);
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals("$.user.name", result.getDifferences().get(0).getPath());
+    assertEquals(DifferenceType.VALUE_MISMATCH, result.getDifferences().get(0).getType());
+  }
+
+  @Test
+  void defaultConfigurationProducesSameResultAsDirectComparison() {
+    String expected = "{\"name\":\"Alice\",\"status\":\"ACTIVE\",\"age\":30}";
+
+    String actual = "{\"name\":\"Bob\",\"status\":\"active\"}";
+
+    ComparisonResult direct = JsonCompare.compare(expected, actual);
+
+    ComparisonResult configured = JsonCompare.compare(expected, actual, new JsonDifferConfig());
+
+    assertEquals(direct.getDifferences(), configured.getDifferences());
   }
 }
