@@ -106,6 +106,7 @@ class StringComparisonTest {
     ComparisonResult result =
         JsonCompare.compare("{\"status\":\"ACTIVE\"}", "{\"status\":\"active\"}");
 
+    assertEquals(1, result.getDifferences().size());
     assertEquals(DifferenceType.CASE_MISMATCH, result.getDifferences().get(0).getType());
   }
 
@@ -114,6 +115,26 @@ class StringComparisonTest {
     ComparisonResult result =
         JsonCompare.compare("{\"status\":\"ACTIVE\"}", "{\"status\":\"INACTIVE\"}");
 
+    assertEquals(1, result.getDifferences().size());
     assertEquals(DifferenceType.VALUE_MISMATCH, result.getDifferences().get(0).getType());
+  }
+
+  @Test
+  void ignoreCaseSuppressesCaseMismatch() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .ignoreCase("$.status")
+            .compare("{\"status\":\"ACTIVE\"}", "{\"status\":\"active\"}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void caseMismatchIsNotAlsoReportedAsValueMismatch() {
+    ComparisonResult result =
+        JsonCompare.compare("{\"status\":\"ACTIVE\"}", "{\"status\":\"active\"}");
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals(DifferenceType.CASE_MISMATCH, result.getDifferences().get(0).getType());
   }
 }

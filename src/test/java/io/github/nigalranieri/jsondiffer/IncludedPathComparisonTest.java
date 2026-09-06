@@ -323,4 +323,48 @@ class IncludedPathComparisonTest {
 
     assertEquals(1, result.getDifferences().size());
   }
+
+  @Test
+  void ignoredPathTakesPrecedenceOverIncludedPath() {
+    String expected = "{\"user\":{\"name\":\"Alice\",\"email\":\"alice@example.com\"}}";
+
+    String actual = "{\"user\":{\"name\":\"Bob\",\"email\":\"bob@example.com\"}}";
+
+    ComparisonResult result =
+        JsonCompare.builder()
+            .includePath("$.user")
+            .ignorePath("$.user.name")
+            .compare(expected, actual);
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals("$.user.email", result.getDifferences().get(0).getPath());
+  }
+
+  @Test
+  void ignoredPathSuppressesExactlyIncludedPath() {
+    String expected = "{\"user\":{\"name\":\"Alice\"}}";
+
+    String actual = "{\"user\":{\"name\":\"Bob\"}}";
+
+    ComparisonResult result =
+        JsonCompare.builder()
+            .includePath("$.user.name")
+            .ignorePath("$.user.name")
+            .compare(expected, actual);
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void includingDescendantDoesNotCompareSiblingFields() {
+    String expected = "{\"user\":{\"email\":\"alice@example.com\",\"name\":\"Alice\"}}";
+
+    String actual = "{\"user\":{\"email\":\"bob@example.com\",\"name\":\"Bob\"}}";
+
+    ComparisonResult result =
+        JsonCompare.builder().includePath("$.user.email").compare(expected, actual);
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals("$.user.email", result.getDifferences().get(0).getPath());
+  }
 }

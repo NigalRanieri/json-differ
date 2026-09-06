@@ -59,4 +59,17 @@ class OrderedArrayComparisonTest {
     assertTrue(difference.getExpected().isMissing());
     assertEquals(3, difference.getActual().getValue());
   }
+
+  @Test
+  void nullAndMissingEquivalenceDoesNotApplyToArrayElements() {
+    ComparisonResult result =
+        JsonCompare.builder()
+            .treatNullAndMissingAsEqual()
+            .compare("{\"values\":[1,null]}", "{\"values\":[1]}");
+
+    assertFalse(result.isEqual());
+    assertEquals(1, result.getDifferences().size());
+    assertEquals(DifferenceType.MISSING_ELEMENT, result.getDifferences().get(0).getType());
+    assertEquals("$.values[1]", result.getDifferences().get(0).getPath());
+  }
 }
