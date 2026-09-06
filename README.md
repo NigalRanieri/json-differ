@@ -1,4 +1,5 @@
 # json-differ
+
 [![Build](https://github.com/NigalRanieri/json-differ/actions/workflows/build.yml/badge.svg)](https://github.com/NigalRanieri/json-differ/actions/workflows/build.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nigalranieri/json-differ.svg)](https://central.sonatype.com/artifact/io.github.nigalranieri/json-differ)
 ![Java](https://img.shields.io/badge/Java-8%2B-blue)
@@ -7,50 +8,76 @@
 
 A configurable structural JSON comparison and diffing library for Java.
 
-`json-differ` compares JSON documents by structure and value and returns a detailed, programmatically accessible description of every difference.
-
-It is strict by default, while allowing comparison behavior to be customized when needed.
+`json-differ` compares JSON documents by structure and value and returns
+detailed, programmatically accessible differences. Comparison is strict
+by default, while allowing behavior to be customized globally or at
+specific JSON paths.
 
 ## Live Playground
 
-Try **json-differ** directly in your browser — no installation required.
+Try **json-differ** directly in your browser --- no installation
+required.
 
 **[Open the json-differ Playground](https://nigalranieri.github.io/json-differ/demo/)**
 
-The playground runs the real Java library in your browser and exposes the full comparison configuration through optional YAML, including path-aware rules and result formatting.
+The playground runs the real Java library in the browser and exposes
+comparison, result filtering, and output configuration through JSON.
+
+> The Java library supports both JSON and YAML configuration files. The
+> playground uses JSON for convenience.
 
 ## Contents
 
-- [Features](#features)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [YAML Configuration](#yaml-configuration)
-- [Path Syntax](#path-syntax)
-- [Default Comparison Semantics](#default-comparison-semantics)
-- [Working with Differences](#working-with-differences)
-- [Result Formatting](#result-formatting)
-- [File Comparison](#file-comparison)
-- [Requirements](#requirements)
-- [License](#license)
+-   [Features](#features)
+-   [Installation](#installation)
+-   [Quick Start](#quick-start)
+-   [Configuration](#configuration)
+    -   [Ignore paths](#ignore-paths)
+    -   [Include paths](#include-paths)
+    -   [Ignore array order](#ignore-array-order)
+    -   [Treat null and missing fields as
+        equal](#treat-null-and-missing-fields-as-equal)
+    -   [Numeric tolerance](#numeric-tolerance)
+    -   [Ignore string case](#ignore-string-case)
+    -   [Combine options](#combine-options)
+    -   [Reusable comparators](#reusable-comparators)
+-   [JSON and YAML Configuration](#json-and-yaml-configuration)
+    -   [Configuration lifecycle](#configuration-lifecycle)
+    -   [Loading configuration](#loading-configuration)
+    -   [JSON example](#json-example)
+    -   [YAML example](#yaml-example)
+    -   [Comparison options](#comparison-options)
+    -   [Result options](#result-options)
+    -   [Output options](#output-options)
+    -   [Validation](#validation)
+-   [Path Syntax](#path-syntax)
+-   [Default Comparison Semantics](#default-comparison-semantics)
+-   [Working with Differences](#working-with-differences)
+-   [Filtering Results](#filtering-results)
+-   [Result Formatting](#result-formatting)
+-   [File Comparison](#file-comparison)
+-   [Requirements](#requirements)
+-   [License](#license)
 
 ## Features
 
-- Structural JSON comparison
-- Detailed differences with JSON paths
-- Ordered arrays by default
-- Optional global and path-specific unordered array comparison
-- Ignored paths with wildcard support
-- Optional global and path-specific `null`/missing equivalence
-- Numeric comparison with global and path-specific tolerance
-- Optional global and path-specific case-insensitive string comparison
-- Consistent wildcard support across path-specific comparison rules
-- Recursive path matching with `**`
-- String and file-based input
-- Reusable configured comparators
-- Optional YAML configuration from strings or files
-- Configurable traversal and grouped result formatting
-- Java 8 compatible
+-   Structural JSON comparison with detailed JSON paths
+-   Ordered arrays by default
+-   Optional global and path-specific unordered array comparison
+-   Ignored paths with wildcard and recursive wildcard support
+-   Included paths for restricting comparison scope
+-   Optional global and path-specific `null`/missing equivalence
+-   Global and path-specific numeric tolerance
+-   Optional global and path-specific case-insensitive string comparison
+-   Dedicated `CASE_MISMATCH` classification
+-   Result filtering by difference type
+-   Regex filtering for string `VALUE_MISMATCH` differences
+-   JSON and YAML configuration
+-   Configurable traversal and grouped result formatting
+-   Custom expected/actual output column labels
+-   String and file-based comparison
+-   Reusable configured comparators
+-   Java 8 compatible
 
 ## Installation
 
@@ -58,11 +85,11 @@ The playground runs the real Java library in your browser and exposes the full c
 
 ### Maven
 
-```xml
+``` xml
 <dependency>
     <groupId>io.github.nigalranieri</groupId>
     <artifactId>json-differ</artifactId>
-    <version>0.2.0</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -70,191 +97,175 @@ The playground runs the real Java library in your browser and exposes the full c
 
 **Groovy DSL**
 
-```groovy
+``` groovy
 dependencies {
-    implementation 'io.github.nigalranieri:json-differ:0.2.0'
+    implementation 'io.github.nigalranieri:json-differ:1.0.0'
 }
 ```
 
 **Kotlin DSL**
 
-```kotlin
+``` kotlin
 dependencies {
-    implementation("io.github.nigalranieri:json-differ:0.2.0")
+    implementation("io.github.nigalranieri:json-differ:1.0.0")
 }
 ```
-
-`json-differ` requires Java 8 or later.
 
 ## Quick Start
 
 Compare two JSON documents:
 
-```java
+``` java
 import io.github.nigalranieri.jsondiffer.JsonCompare;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 
-String expected =
-    "{\"name\":\"Alice\",\"age\":30}";
+String expected = "{\"name\":\"Alice\",\"age\":30}";
+String actual = "{\"name\":\"Bob\",\"age\":30}";
 
-String actual =
-    "{\"name\":\"Bob\",\"age\":30}";
-
-ComparisonResult result =
-    JsonCompare.compare(expected, actual);
+ComparisonResult result = JsonCompare.compare(expected, actual);
 
 if (!result.isEqual()) {
   System.out.println(result);
 }
 ```
 
-Output:
-
-```text
-JSON differs (1 differences):
-+--------+----------------+----------+--------+
-| PATH   | TYPE           | EXPECTED | ACTUAL |
-+--------+----------------+----------+--------+
-| $.name | VALUE_MISMATCH | "Alice"  | "Bob"  |
-+--------+----------------+----------+--------+
-```
-
 For a simple equality check:
 
-```java
-boolean equal =
-    JsonCompare.equals(expected, actual);
+``` java
+boolean equal = JsonCompare.areEqual(expected, actual);
 ```
 
 ## Configuration
 
-Use `JsonCompare.builder()` to customize comparison behavior.
+Use `JsonCompare.builder()` to customize how differences are detected.
 
 ### Ignore paths
 
-Ignore differences at a specific JSON path:
+Ignore a value or complete subtree:
 
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
-        .ignorePath("$.timestamp")
+        .ignorePath("$.metadata.timestamp")
         .compare(expected, actual);
 ```
 
-Ignoring a path ignores the value or subtree at that path.
+Wildcards and recursive wildcards are supported:
 
-Wildcards are supported:
-
-```java
+``` java
 .ignorePath("$.users[*].timestamp")
+.ignorePath("$.**.requestId")
 ```
 
-Recursive wildcards can match at any nested depth:
+### Include paths
 
-```java
-.ignorePath("$.**.timestamp")
+Restrict comparison to a path and its descendants:
+
+``` java
+ComparisonResult result =
+    JsonCompare.builder()
+        .includePath("$.user")
+        .compare(expected, actual);
 ```
+
+Multiple included paths may be configured:
+
+``` java
+JsonCompare.builder()
+    .includePath("$.user.profile")
+    .includePath("$.settings")
+    .compare(expected, actual);
+```
+
+Wildcards use the same syntax as other path-aware options:
+
+``` java
+.includePath("$.users[*].profile")
+```
+
+When include paths are configured, unrelated parts of the document are
+outside the comparison scope. Ancestors required to reach an included
+path may be traversed without making their unrelated contents part of
+the comparison.
+
+Ignored paths take precedence over included paths.
 
 ### Ignore array order
 
 Arrays are order-sensitive by default.
 
-To ignore order for all arrays:
+Ignore order for all arrays:
 
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .ignoreArrayOrder()
         .compare(expected, actual);
 ```
 
-For example, these arrays are considered equal when array order is ignored:
+Or only at selected paths:
 
-```json
-[1, 2, 3]
-```
-
-```json
-[3, 1, 2]
-```
-
-Duplicate elements remain significant.
-
-Array order can also be ignored only at specific paths:
-
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .ignoreArrayOrder("$.users")
         .compare(expected, actual);
 ```
 
-Path wildcards are supported here as well:
+Wildcards are supported:
 
-```java
+``` java
 .ignoreArrayOrder("$.groups[*].users")
 ```
 
+Duplicate elements remain significant.
+
+Unordered comparison of large arrays containing complex objects can be
+significantly more expensive than ordered comparison because elements
+must be matched across the two arrays.
+
 ### Treat `null` and missing fields as equal
 
-By default, an explicit JSON `null` and a missing object field are different.
+By default, an explicit JSON `null` and a missing object field are
+different.
 
-For example:
+Enable equivalence globally:
 
-```json
-{
-  "name": null
-}
-```
-
-and:
-
-```json
-{}
-```
-
-are different under the default comparison rules.
-
-To treat `null` and missing fields as equivalent globally:
-
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .treatNullAndMissingAsEqual()
         .compare(expected, actual);
 ```
 
-The rule can also be enabled only at specific paths:
+Or at selected paths:
 
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .treatNullAndMissingAsEqual("$.users[*].nickname")
         .compare(expected, actual);
 ```
 
-Other fields remain strict unless global null/missing equivalence is enabled.
-
-This option applies to object fields and does not change array semantics.
+This option applies to object fields and does not change array
+semantics.
 
 ### Numeric tolerance
 
-Numeric values are compared exactly by default.
+Numbers are compared exactly by default.
 
-Configure a global absolute tolerance when approximate numeric comparison is needed:
+Configure a global absolute tolerance:
 
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .numericTolerance(0.01)
         .compare(expected, actual);
 ```
 
-With a tolerance of `0.01`, numeric values whose absolute difference is less than or equal to `0.01` are considered equal.
+Configure path-specific tolerances:
 
-Different tolerances can also be configured for specific paths:
-
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .numericTolerance(0.01)
@@ -263,48 +274,50 @@ ComparisonResult result =
         .compare(expected, actual);
 ```
 
-A matching path-specific tolerance takes precedence over the global tolerance. If multiple path-specific tolerance rules match the same path, the last configured matching tolerance is used.
-
-When no path-specific tolerance matches, the global tolerance is used. If no global tolerance is configured either, numeric values are compared exactly.
+A matching path-specific tolerance takes precedence over the global
+tolerance. If multiple path-specific rules match the same path, the last
+configured matching tolerance is used.
 
 Tolerances must be non-negative and finite.
 
 ### Ignore string case
 
-String values are case-sensitive by default.
+Strings are case-sensitive by default.
 
-To compare all string values without considering case:
+Ignore case globally:
 
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .ignoreCase()
         .compare(expected, actual);
 ```
 
-For example, `"Alice"` and `"alice"` are considered equal when case-insensitive comparison is enabled.
+Or only at selected paths:
 
-Case-insensitive comparison can also be enabled only at specific paths:
-
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
         .ignoreCase("$.users[*].email")
         .compare(expected, actual);
 ```
 
-String values at other paths remain case-sensitive unless global case-insensitive comparison is enabled.
+This applies only to string values. Object field names remain
+case-sensitive.
 
-This option applies only to string values. Object field names remain case-sensitive.
+When case-sensitive comparison is active, two strings that differ only
+by letter case are reported as `CASE_MISMATCH`. If ignore-case applies
+at that path, they are considered equal.
 
 ### Combine options
 
 Comparison rules can be combined:
 
-```java
+``` java
 ComparisonResult result =
     JsonCompare.builder()
-        .ignorePath("$.metadata.timestamp")
+        .includePath("$.users")
+        .ignorePath("$.users[*].metadata")
         .ignoreArrayOrder("$.users")
         .treatNullAndMissingAsEqual("$.users[*].nickname")
         .numericTolerance("$.users[*].score", 0.01)
@@ -312,13 +325,18 @@ ComparisonResult result =
         .compare(expected, actual);
 ```
 
-Ignored paths take precedence over other comparison rules at the same path.
+Ignored paths take precedence over other comparison rules at the same
+path.
+
+Global boolean rules remain global. A path-specific list for the same
+option does not narrow or disable a rule that has been enabled globally.
 
 ### Reusable comparators
 
-For repeated comparisons with the same configuration, build a reusable comparator:
+Build a reusable comparator when many comparisons use the same
+comparison rules:
 
-```java
+``` java
 JsonComparator comparator =
     JsonCompare.builder()
         .ignorePath("$.timestamp")
@@ -332,67 +350,151 @@ ComparisonResult secondResult =
     comparator.compare(secondExpected, secondActual);
 ```
 
-A built comparator keeps the configuration it was created with and is unaffected by subsequent changes to the builder.
+A built comparator keeps the configuration it was created with and is
+unaffected by subsequent changes to the builder.
 
-## YAML Configuration
+## JSON and YAML Configuration
 
-The builder API remains fully supported, but comparison and output behavior can also be described in YAML.
+The same behavior can be configured declaratively. The configuration
+model has three top-level stages.
 
-YAML configuration is optional. Blank YAML, omitted sections, and explicitly `null` sections fall back to the default strict comparison behavior.
+### Configuration lifecycle
 
-### Load configuration from a YAML file
-
-Use `JsonCompare.fromConfig(Path)` when configuration is stored in a file:
-
-```java
-import io.github.nigalranieri.jsondiffer.JsonCompare;
-import io.github.nigalranieri.jsondiffer.JsonComparator;
-
-import java.nio.file.Paths;
-
-JsonComparator comparator =
-        JsonCompare.comparatorFromConfig(
-                Paths.get("json-differ.yml"));
-
-ComparisonResult result =
-        comparator.compare(expected, actual);
+``` text
+comparison -> detects differences
+result     -> retains selected differences
+output     -> renders the retained result
 ```
 
-### Load configuration from YAML text
+`comparison` changes the comparison itself.
 
-YAML text can be parsed into a reusable `JsonDifferConfig`:
+`result` is applied after comparison and filters the resulting
+`ComparisonResult`.
 
-```java
-import io.github.nigalranieri.jsondiffer.JsonCompare;
-import io.github.nigalranieri.jsondiffer.JsonComparator;
+`output` affects presentation only and does not change the structured
+differences.
+
+All sections and settings are optional.
+
+### Loading configuration
+
+Load a JSON or YAML configuration file:
+
+``` java
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfig;
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfigLoader;
 
-String yaml =
-        "comparison:\n"
-                + "  ignoreCase:\n"
-                + "    globally: true\n";
-
 JsonDifferConfig config =
-        JsonDifferConfigLoader.loadYaml(yaml);
-
-JsonComparator comparator =
-        JsonCompare.comparatorFromConfig(config);
-
-ComparisonResult result =
-        comparator.compare(expected, actual);
+    JsonDifferConfigLoader.load(Paths.get("json-differ.json"));
 ```
 
-The same configuration object also contains output settings:
+A `.json` file is parsed as JSON. Other supported configuration files
+use YAML parsing.
 
-```java
+Configuration can also be loaded directly from text:
+
+``` java
+JsonDifferConfig jsonConfig =
+    JsonDifferConfigLoader.loadJson(json);
+
+JsonDifferConfig yamlConfig =
+    JsonDifferConfigLoader.loadYaml(yaml);
+```
+
+To perform a complete configured comparison, including configured result
+filtering:
+
+``` java
+ComparisonResult result =
+    JsonCompare.compare(expected, actual, config);
+```
+
+File inputs are supported as well:
+
+``` java
+ComparisonResult result =
+    JsonCompare.compare(expectedPath, actualPath, config);
+```
+
+Output remains a separate step:
+
+``` java
 String formatted =
     config.getOutput().format(result);
 ```
 
-### Complete YAML example
+If only reusable comparison behavior is needed:
 
-```yaml
+``` java
+JsonComparator comparator =
+    JsonCompare.comparatorFromConfig(config);
+```
+
+`comparatorFromConfig(...)` creates a comparator from the `comparison`
+section. It does not apply the `result` or `output` sections. Use
+`JsonCompare.compare(..., config)` when configured result filtering
+should also be applied.
+
+### JSON example
+
+``` json
+{
+  "comparison": {
+    "ignorePaths": [
+      "$.metadata.requestId",
+      "$.metadata.timestamp"
+    ],
+    "includePaths": [],
+    "arrayOrder": {
+      "ignoreGlobally": false,
+      "ignoreAt": [
+        "$.roles",
+        "$.groups[*].members"
+      ]
+    },
+    "nullAndMissing": {
+      "equalGlobally": false,
+      "equalAt": [
+        "$.user.nickname"
+      ]
+    },
+    "numericTolerance": {
+      "global": 0.01,
+      "paths": {
+        "$.user.score": 0.5,
+        "$.measurements[*].value": 0.1
+      }
+    },
+    "ignoreCase": {
+      "globally": false,
+      "paths": [
+        "$.user.email",
+        "$.users[*].username"
+      ]
+    }
+  },
+  "result": {
+    "types": [
+      "VALUE_MISMATCH",
+      "CASE_MISMATCH",
+      "MISSING_FIELD"
+    ],
+    "valueMismatchPattern": "^[^@]+@[^@]+$"
+  },
+  "output": {
+    "format": "GROUPED",
+    "columns": {
+      "maxCellWidth": 40,
+      "expectedLabel": "Expected",
+      "actualLabel": "Actual"
+    }
+  }
+}
+```
+
+### YAML example
+
+``` yaml
 comparison:
   ignorePaths:
     - $.metadata.requestId
@@ -408,7 +510,6 @@ comparison:
     equalGlobally: false
     equalAt:
       - $.user.nickname
-      - $.users[*].optional
 
   numericTolerance:
     global: 0.01
@@ -422,89 +523,184 @@ comparison:
       - $.user.email
       - $.users[*].username
 
+result:
+  types:
+    - VALUE_MISMATCH
+    - CASE_MISMATCH
+    - MISSING_FIELD
+  valueMismatchPattern: "^[^@]+@[^@]+$"
+
 output:
   format: grouped
   columns:
     maxCellWidth: 40
+    expectedLabel: Expected
+    actualLabel: Actual
 ```
 
-All settings are optional. The default configuration is equivalent to strict comparison with traversal output and a maximum table cell width of `40`.
+### Comparison options
 
-### YAML comparison options
+  -------------------------------------------------------------------------------------------
+Option                                      Default                 Description
+  ------------------------------------------- ----------------------- -----------------------
+`comparison.ignorePaths`                    empty                   Paths or patterns whose
+values or subtrees are
+ignored.
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `comparison.ignorePaths` | empty | Paths or path patterns whose values or subtrees are ignored. |
-| `comparison.arrayOrder.ignoreGlobally` | `false` | Ignores element order for every array. |
-| `comparison.arrayOrder.ignoreAt` | empty | Ignores element order only for arrays matching the listed paths. |
-| `comparison.nullAndMissing.equalGlobally` | `false` | Treats JSON `null` and a missing object field as equal globally. |
-| `comparison.nullAndMissing.equalAt` | empty | Enables null/missing equivalence only at matching paths. |
-| `comparison.numericTolerance.global` | none | Sets the global absolute numeric tolerance. |
-| `comparison.numericTolerance.paths` | empty | Sets path-specific numeric tolerances. |
-| `comparison.ignoreCase.globally` | `false` | Compares all string values without considering case. |
-| `comparison.ignoreCase.paths` | empty | Enables case-insensitive string comparison only at matching paths. |
+`comparison.includePaths`                   empty                   Restricts comparison to
+listed paths and their
+descendants. Empty
+means the whole
+document is in scope.
 
-Path-specific YAML rules use the same path syntax and wildcard semantics as the builder API.
+`comparison.arrayOrder.ignoreGlobally`      `false`                 Ignores element order
+for every array.
 
-For numeric tolerance, a matching path-specific tolerance overrides the global tolerance. If multiple path-specific tolerance rules match the same path, the last configured matching tolerance is used.
+`comparison.arrayOrder.ignoreAt`            empty                   Ignores element order
+for arrays matching the
+listed paths.
 
-Global boolean rules remain enabled everywhere when set to `true`; path-specific rules add matching paths rather than disabling a global rule.
+`comparison.nullAndMissing.equalGlobally`   `false`                 Treats JSON `null` and
+a missing object field
+as equal globally.
 
-### YAML output options
+`comparison.nullAndMissing.equalAt`         empty                   Enables null/missing
+equivalence at matching
+paths.
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `output.format` | `traversal` | Result presentation mode. Accepted values are `traversal` and `grouped`, case-insensitively. |
-| `output.columns.maxCellWidth` | `40` | Maximum width of each formatted table cell before wrapping. Must be greater than zero. |
+`comparison.numericTolerance.global`        none                    Global absolute numeric
+tolerance.
 
-For example:
+`comparison.numericTolerance.paths`         empty                   Path-specific numeric
+tolerances.
 
-```yaml
-output:
-  format: grouped
-  columns:
-    maxCellWidth: 60
-```
+`comparison.ignoreCase.globally`            `false`                 Compares string values
+without considering
+case globally.
 
-Output configuration affects rendering only. It does not change the structured differences returned by `ComparisonResult`.
+`comparison.ignoreCase.paths`               empty                   Enables
+case-insensitive string
+comparison at matching
+paths.
+  -------------------------------------------------------------------------------------------
+
+Path-specific configuration uses the same syntax as the builder API.
+
+For numeric tolerance, matching path-specific values override the global
+tolerance. If multiple path-specific tolerance patterns match, the last
+configured matching rule is used.
+
+For boolean global/path rules, enabling the global option applies it
+everywhere it is applicable. Paths configured for that same option are
+then redundant; they do not narrow or override the global setting.
+
+Ignored paths take precedence over included paths and other comparison
+rules.
+
+### Result options
+
+  -------------------------------------------------------------------------------
+Option                          Default                 Description
+  ------------------------------- ----------------------- -----------------------
+`result.types`                  empty                   Difference types
+eligible to be
+retained. Empty means
+all types are eligible.
+
+`result.valueMismatchPattern`   none                    Regex used to further
+restrict eligible
+`VALUE_MISMATCH`
+differences.
+  -------------------------------------------------------------------------------
+
+Result filtering happens after differences have been detected.
+
+When `types` is empty or absent, every difference type is eligible. When
+populated, only the listed types are eligible.
+
+`valueMismatchPattern` affects `VALUE_MISMATCH` only. A value mismatch
+is retained when either the expected or actual JSON string matches the
+entire regular expression. Non-string value mismatches do not match the
+pattern. Other eligible difference types are unaffected.
+
+When `types` and `valueMismatchPattern` are both configured, the type
+list establishes eligibility first and the regex then further restricts
+eligible `VALUE_MISMATCH` entries.
+
+### Output options
+
+  --------------------------------------------------------------------------------
+Option                           Default                 Description
+  -------------------------------- ----------------------- -----------------------
+`output.format`                  `TRAVERSAL`             Presentation mode:
+`TRAVERSAL` or
+`GROUPED`,
+case-insensitively.
+
+`output.columns.maxCellWidth`    `40`                    Maximum formatted
+table-cell width before
+wrapping. Must be
+greater than zero.
+
+`output.columns.expectedLabel`   `EXPECTED`              Header used for the
+expected-value column.
+
+`output.columns.actualLabel`     `ACTUAL`                Header used for the
+actual-value column.
+  --------------------------------------------------------------------------------
+
+Output configuration affects rendering only.
 
 ### Validation
 
 Configuration is validated rather than silently ignored.
 
-- Unknown YAML properties are rejected.
-- Malformed YAML is rejected.
-- Paths must use valid json-differ path syntax and start with `$`.
-- Numeric tolerances must be non-negative and finite.
-- `maxCellWidth` must be greater than zero.
-- Blank YAML is treated as an empty configuration.
+-   Unknown configuration properties are rejected.
+-   Malformed JSON or YAML is rejected.
+-   Paths must use valid json-differ path syntax and start with `$`.
+-   Numeric tolerances must be non-negative and finite.
+-   `maxCellWidth` must be greater than zero.
+-   Invalid enum values are rejected.
+-   Invalid regular expressions are rejected when the configured result
+    filter is applied.
+-   Blank JSON or YAML text is treated as an empty/default
+    configuration.
+-   Blank JSON or YAML files are also treated as an empty/default
+    configuration.
+-   Omitted or explicitly `null` top-level configuration sections fall
+    back to their defaults.
 
 ## Path Syntax
 
-All path-specific comparison rules use the same path syntax. Path expressions start from `$`, the document root.
+All path-specific comparison rules use the same path syntax. Paths start
+from `$`, the document root.
 
 This applies to:
 
-- `ignorePath(...)`
-- `ignoreArrayOrder(...)`
-- `treatNullAndMissingAsEqual(...)`
-- `numericTolerance(...)`
-- `ignoreCase(...)`
+-   `ignorePath(...)`
+-   `includePath(...)`
+-   `ignoreArrayOrder(...)`
+-   `treatNullAndMissingAsEqual(...)`
+-   `numericTolerance(...)`
+-   `ignoreCase(...)`
 
-| Syntax | Meaning | Example |
-| --- | --- | --- |
-| `$` | Document root | `$` |
-| `.property` | Object property | `$.user.name` |
-| `[n]` | Exact array index | `$.users[0]` |
-| `*` | Any property at one level | `$.*.timestamp` |
-| `[*]` | Any array index | `$.users[*].id` |
-| `**` | Recursive wildcard across nested levels | `$.**.timestamp` |
+Syntax        Meaning                                   Example
+  ------------- ----------------------------------------- ------------------
+`$`           Document root                             `$`
+`.property`   Object property                           `$.user.name`
+`[n]`         Exact array index                         `$.users[0]`
+`*`           Any property at one level                 `$.*.timestamp`
+`[*]`         Any array index                           `$.users[*].id`
+`**`          Recursive wildcard across nested levels   `$.**.timestamp`
 
 Examples:
 
-```java
+``` java
 // Ignore one exact property
 .ignorePath("$.metadata.timestamp")
+
+// Compare only the user subtree
+.includePath("$.user")
 
 // Ignore the timestamp of every user
 .ignorePath("$.users[*].timestamp")
@@ -512,7 +708,7 @@ Examples:
 // Ignore timestamp wherever it appears recursively
 .ignorePath("$.**.timestamp")
 
-// Ignore array order for every users array inside groups
+// Ignore array order for users arrays inside groups
 .ignoreArrayOrder("$.groups[*].users")
 
 // Treat null and missing nicknames as equivalent
@@ -525,7 +721,7 @@ Examples:
 .ignoreCase("$.users[*].email")
 ```
 
-Paths must be syntactically valid and start with `$`. Invalid paths are rejected with `IllegalArgumentException`.
+Invalid paths are rejected with `IllegalArgumentException`.
 
 ## Default Comparison Semantics
 
@@ -533,19 +729,21 @@ Paths must be syntactically valid and start with `$`. Invalid paths are rejected
 
 Without additional configuration:
 
-- Object property order is ignored.
-- Object fields must exist on both sides.
-- Array order is significant.
-- Array length and duplicate elements are significant.
-- JSON `null` and a missing field are different.
-- Numbers are compared exactly.
-- String values are case-sensitive.
-- Values of different JSON types are not considered equal.
-- No paths are ignored.
+-   Object property order is ignored.
+-   Object fields must exist on both sides.
+-   Array order is significant.
+-   Array length and duplicate elements are significant.
+-   JSON `null` and a missing object field are different.
+-   Numbers are compared exactly.
+-   Strings are case-sensitive.
+-   Strings differing only by case are reported as `CASE_MISMATCH`.
+-   Values of different JSON types are not considered equal.
+-   No paths are ignored.
+-   The whole document is in comparison scope.
 
 For example, object property order does not affect equality:
 
-```json
+``` json
 {
   "name": "Alice",
   "age": 30
@@ -554,7 +752,7 @@ For example, object property order does not affect equality:
 
 and:
 
-```json
+``` json
 {
   "age": 30,
   "name": "Alice"
@@ -565,13 +763,13 @@ are equal.
 
 Array order does affect equality:
 
-```json
+``` json
 [1, 2, 3]
 ```
 
 and:
 
-```json
+``` json
 [3, 2, 1]
 ```
 
@@ -581,7 +779,7 @@ are different unless unordered array comparison is enabled.
 
 `JsonCompare.compare(...)` returns a `ComparisonResult`.
 
-```java
+``` java
 ComparisonResult result =
     JsonCompare.compare(expected, actual);
 
@@ -596,196 +794,249 @@ if (!result.isEqual()) {
 ```
 
 Each `Difference` contains:
-- the JSON path where the difference was detected
-- the `DifferenceType`
-- the expected `DifferenceValue`
-- the actual `DifferenceValue`
 
-Example:
-
-```java
-Difference difference =
-    result.getDifferences().get(0);
-
-String path = difference.getPath();
-DifferenceType type = difference.getType();
-
-DifferenceValue expectedValue =
-    difference.getExpected();
-
-DifferenceValue actualValue =
-    difference.getActual();
-```
+-   the JSON path where the difference was detected
+-   the `DifferenceType`
+-   the expected `DifferenceValue`
+-   the actual `DifferenceValue`
 
 ### Difference types
 
 Possible difference types are:
 
-- `VALUE_MISMATCH`
-- `MISSING_FIELD`
-- `UNEXPECTED_FIELD`
-- `MISSING_ELEMENT`
-- `UNEXPECTED_ELEMENT`
+-   `VALUE_MISMATCH`
+-   `CASE_MISMATCH`
+-   `MISSING_FIELD`
+-   `UNEXPECTED_FIELD`
+-   `MISSING_ELEMENT`
+-   `UNEXPECTED_ELEMENT`
+
+`CASE_MISMATCH` is used when two string values are equal ignoring case
+but differ in letter case:
+
+``` text
+"ACTIVE" vs "active" -> CASE_MISMATCH
+"ACTIVE" vs "INACTIVE" -> VALUE_MISMATCH
+```
+
+When case-insensitive comparison applies at that path, the first pair is
+considered equal instead.
 
 ### Difference values
 
-`DifferenceValue` preserves the JSON value type.
-
-```java
-DifferenceValueType type =
-    difference.getExpected().getType();
-```
+`DifferenceValue` preserves the JSON value type without exposing Jackson
+types through the public result API.
 
 Supported value types are:
 
-- `STRING`
-- `NUMBER`
-- `BOOLEAN`
-- `OBJECT`
-- `ARRAY`
-- `NULL`
-- `MISSING`
+-   `STRING`
+-   `NUMBER`
+-   `BOOLEAN`
+-   `OBJECT`
+-   `ARRAY`
+-   `NULL`
+-   `MISSING`
 
-JSON objects are exposed as immutable `Map` values and arrays as immutable `List` values. Jackson types are not exposed through the public result API.
+JSON objects are exposed as immutable `Map` values and arrays as
+immutable `List` values.
 
-Missing values and explicit JSON `null` values remain distinct:
+Missing values and explicit JSON `null` remain distinct:
 
-```java
+``` java
 difference.getExpected().isMissing();
 difference.getExpected().isNull();
 ```
 
-For example:
+## Filtering Results
 
-```json
-{
-  "age": null
-}
+Filtering operates on an existing immutable `ComparisonResult` and
+returns a new result. The original result is not modified, and retained
+differences preserve their original traversal order.
+
+### Filter by difference type
+
+``` java
+ComparisonResult filtered =
+    result.filter(
+        DifferenceType.VALUE_MISMATCH,
+        DifferenceType.CASE_MISMATCH);
 ```
 
-and:
+Only the requested difference types are retained.
 
-```json
-{}
+### Filter value mismatches with a regular expression
+
+``` java
+import java.util.regex.Pattern;
+
+Pattern emailPattern =
+    Pattern.compile("^[^@]+@[^@]+$");
+
+ComparisonResult emails =
+    result.filterValueMismatches(emailPattern);
 ```
 
-can produce a result where one side is `NULL` and the other is `MISSING`.
+`filterValueMismatches(...)`:
+
+-   considers only `VALUE_MISMATCH`
+-   matches only JSON string values
+-   retains a mismatch when either the expected or actual string matches
+-   uses whole-value `Pattern.matcher(...).matches()` semantics
+-   does not include `CASE_MISMATCH`
+-   returns a new `ComparisonResult`
+
+For declarative result filtering, see the [`result` configuration
+section](#result-options). Its regex setting narrows `VALUE_MISMATCH`
+entries while preserving other eligible difference types.
 
 ## Result Formatting
 
-`ComparisonResult` provides human-readable table formatting in addition to the structured difference API.
+`ComparisonResult` provides human-readable table formatting in addition
+to its structured API.
 
 ### Traversal format
 
 Traversal format is the default used by `toString()`:
 
-```java
+``` java
 System.out.println(result);
 ```
 
 or explicitly:
 
-```java
+``` java
 System.out.println(
     result.format(ComparisonResultFormat.TRAVERSAL));
 ```
 
-Differences are displayed in traversal order, with the JSON path as the first column:
-
-```text
-JSON differs (3 differences):
-+----------+------------------+-----------+-----------+
-| PATH     | TYPE             | EXPECTED  | ACTUAL    |
-+----------+------------------+-----------+-----------+
-| $.name   | VALUE_MISMATCH   | "Alice"   | "Bob"     |
-| $.age    | MISSING_FIELD    | 30        | <missing> |
-| $.active | UNEXPECTED_FIELD | <missing> | true      |
-+----------+------------------+-----------+-----------+
-```
+Differences remain in traversal order, with the JSON path as the first
+column.
 
 ### Grouped format
 
-Grouped format organizes differences by type:
+Grouped format organizes the rendered result by difference type:
 
-```java
+``` java
 System.out.println(
     result.format(ComparisonResultFormat.GROUPED));
 ```
 
-The difference type becomes the first column:
+Formatting changes presentation only. `getDifferences()` continues to
+expose differences in their original traversal order.
 
-```text
-JSON differs (4 differences):
-+------------------+----------+-----------+-----------+
-| TYPE             | PATH     | EXPECTED  | ACTUAL    |
-+------------------+----------+-----------+-----------+
-| VALUE_MISMATCH   | $.name   | "Alice"   | "Bob"     |
-| VALUE_MISMATCH   | $.city   | "Rome"    | "Milan"   |
-| MISSING_FIELD    | $.age    | 30        | <missing> |
-| UNEXPECTED_FIELD | $.active | <missing> | true      |
-+------------------+----------+-----------+-----------+
-```
+Long paths and values wrap across multiple table lines rather than being
+truncated.
 
-Grouped formatting changes only the presentation of the result. `getDifferences()` continues to return differences in their original traversal order.
+### Cell width
 
-Long paths and values are wrapped across multiple table lines rather than truncated.
+Supply a custom maximum cell width:
 
-A custom maximum cell width can also be supplied directly:
-
-```java
-System.out.println(
+``` java
+String formatted =
     result.format(
         ComparisonResultFormat.TRAVERSAL,
-        60));
+        60);
 ```
 
 The default maximum cell width is `40`.
+
+### Custom column labels
+
+The expected and actual column labels can also be customized:
+
+``` java
+String formatted =
+    result.format(
+        ComparisonResultFormat.GROUPED,
+        40,
+        "Source",
+        "Target");
+```
+
+The defaults are `EXPECTED` and `ACTUAL`.
+
+Configuration can provide the same customization:
+
+``` json
+{
+  "output": {
+    "columns": {
+      "expectedLabel": "Source",
+      "actualLabel": "Target"
+    }
+  }
+}
+```
 
 ## File Comparison
 
 JSON files can be compared directly using `Path`:
 
-```java
+``` java
 import io.github.nigalranieri.jsondiffer.JsonCompare;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-Path expected =
-        Paths.get("expected.json");
-
-Path actual =
-        Paths.get("actual.json");
+Path expected = Paths.get("expected.json");
+Path actual = Paths.get("actual.json");
 
 ComparisonResult result =
-        JsonCompare.compare(expected, actual);
+    JsonCompare.compare(expected, actual);
 ```
 
-Builder options work with file comparison as well:
+Builder options work with files as well:
 
-```java
+``` java
 ComparisonResult result =
-        JsonCompare.builder()
-                .ignorePath("$.timestamp")
-                .ignoreArrayOrder("$.users")
-                .compare(expected, actual);
+    JsonCompare.builder()
+        .ignorePath("$.timestamp")
+        .ignoreArrayOrder("$.users")
+        .compare(expected, actual);
 ```
 
-Malformed JSON is reported with `InvalidJsonException`. Failures while reading a JSON file are reported with `JsonReadException`.
+String and `Path` inputs can also be mixed, so either side may come from
+an in-memory JSON document or a file:
+
+``` java
+ComparisonResult fromStringAndFile =
+    JsonCompare.compare(expectedJson, actualPath);
+
+ComparisonResult fromFileAndString =
+    JsonCompare.compare(expectedPath, actualJson);
+```
+
+The same four input combinations are available through
+`JsonCompare.areEqual(...)`, `JsonCompareBuilder.compare(...)`, and
+`JsonComparator.compare(...)`.
+
+A `JsonDifferConfig` can be applied to any of the four input
+combinations:
+
+``` java
+ComparisonResult result =
+    JsonCompare.compare(expected, actual, config);
+```
+
+Malformed JSON is reported with `InvalidJsonException`. Failures while
+reading a JSON file are reported with `JsonReadException`.
 
 ## Requirements
 
-- Java 8 or later
+-   Java 8 or later
 
-Jackson is used internally for JSON parsing but is not exposed through the public comparison or result APIs.
+Jackson is used internally for JSON parsing and configuration loading
+but is not exposed through the public comparison or result APIs.
 
 ## License
 
 Copyright © 2026 Nigal Ranieri.
 
-Licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+Licensed under the Apache License 2.0. See [LICENSE](LICENSE) for
+details.
 
----
+------------------------------------------------------------------------
 
-> *“A difference which makes no difference is no difference at all.”*  
-> — William James
+> *"A difference which makes no difference is no difference at all."*\
+> --- William James
