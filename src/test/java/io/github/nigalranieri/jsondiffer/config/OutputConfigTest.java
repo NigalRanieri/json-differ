@@ -2,6 +2,7 @@ package io.github.nigalranieri.jsondiffer.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.nigalranieri.jsondiffer.JsonCompare;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import io.github.nigalranieri.jsondiffer.result.ComparisonResultFormat;
 import io.github.nigalranieri.jsondiffer.result.Difference;
@@ -75,5 +76,21 @@ class OutputConfigTest {
     config.setColumns(columns);
 
     assertSame(columns, config.getColumns());
+  }
+
+  @Test
+  void usesCustomExpectedAndActualColumnLabels() {
+    ComparisonResult result = JsonCompare.compare("{\"name\":\"Alice\"}", "{\"name\":\"Bob\"}");
+
+    OutputConfig output = new OutputConfig();
+    output.getColumns().setExpectedLabel("SOURCE");
+    output.getColumns().setActualLabel("TARGET");
+
+    String formatted = output.format(result);
+
+    assertTrue(formatted.contains("SOURCE"));
+    assertTrue(formatted.contains("TARGET"));
+    assertFalse(formatted.contains("EXPECTED"));
+    assertFalse(formatted.contains("ACTUAL"));
   }
 }

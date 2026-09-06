@@ -64,6 +64,7 @@ public final class OutputConfig {
   public String format(ComparisonResult result) {
     Objects.requireNonNull(result, "result");
 
-    return result.format(format, columns.getMaxCellWidth());
+    return result.format(
+        format, columns.getMaxCellWidth(), columns.getExpectedLabel(), columns.getActualLabel());
   }
 }

@@ -349,4 +349,41 @@ public class JsonDifferConfigLoaderTest {
         yamlConfig.getComparison().getIgnoreCase().isGlobally(),
         jsonConfig.getComparison().getIgnoreCase().isGlobally());
   }
+
+  @Test
+  void loadsCustomColumnLabelsFromYaml() throws IOException {
+    String yaml =
+        "output:\n" + "  columns:\n" + "    expectedLabel: Source\n" + "    actualLabel: Target\n";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
+
+    assertEquals("Source", config.getOutput().getColumns().getExpectedLabel());
+    assertEquals("Target", config.getOutput().getColumns().getActualLabel());
+  }
+
+  @Test
+  void loadsCustomColumnLabelsFromJson() throws IOException {
+    String json =
+        "{"
+            + "\"output\":{"
+            + "\"columns\":{"
+            + "\"expectedLabel\":\"Source\","
+            + "\"actualLabel\":\"Target\""
+            + "}"
+            + "}"
+            + "}";
+
+    JsonDifferConfig config = JsonDifferConfigLoader.loadJson(json);
+
+    assertEquals("Source", config.getOutput().getColumns().getExpectedLabel());
+    assertEquals("Target", config.getOutput().getColumns().getActualLabel());
+  }
+
+  @Test
+  void usesDefaultColumnLabels() {
+    ColumnConfig columns = new ColumnConfig();
+
+    assertEquals("EXPECTED", columns.getExpectedLabel());
+    assertEquals("ACTUAL", columns.getActualLabel());
+  }
 }

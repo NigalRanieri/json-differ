@@ -111,7 +111,28 @@ public final class ComparisonResult {
    * @throws IllegalArgumentException if {@code maxCellWidth} is not greater than zero
    */
   public String format(ComparisonResultFormat format, int maxCellWidth) {
+    return format(format, maxCellWidth, "EXPECTED", "ACTUAL");
+  }
+
+  /**
+   * Formats this result using the requested presentation mode, maximum table cell width, and
+   * expected/actual column labels.
+   *
+   * @param format the desired result format
+   * @param maxCellWidth the maximum width of each table cell; must be greater than zero
+   * @param expectedLabel the expected-value column label
+   * @param actualLabel the actual-value column label
+   * @return a human-readable representation of this comparison result
+   * @throws NullPointerException if {@code format}, {@code expectedLabel}, or {@code actualLabel}
+   *     is {@code null}
+   * @throws IllegalArgumentException if {@code maxCellWidth} is not greater than zero
+   */
+  public String format(
+      ComparisonResultFormat format, int maxCellWidth, String expectedLabel, String actualLabel) {
+
     Objects.requireNonNull(format, "format");
+    Objects.requireNonNull(expectedLabel, "expectedLabel");
+    Objects.requireNonNull(actualLabel, "actualLabel");
 
     if (maxCellWidth <= 0) {
       throw new IllegalArgumentException("Maximum cell width must be greater than zero");
@@ -122,10 +143,10 @@ public final class ComparisonResult {
     }
 
     if (format == ComparisonResultFormat.GROUPED) {
-      return formatGrouped(maxCellWidth);
+      return formatGrouped(maxCellWidth, expectedLabel, actualLabel);
     }
 
-    return formatTraversal(maxCellWidth);
+    return formatTraversal(maxCellWidth, expectedLabel, actualLabel);
   }
 
   /**
@@ -185,8 +206,8 @@ public final class ComparisonResult {
     return format(ComparisonResultFormat.TRAVERSAL);
   }
 
-  private String formatTraversal(int maxCellWidth) {
-    List<String> headers = Arrays.asList("PATH", "TYPE", "EXPECTED", "ACTUAL");
+  private String formatTraversal(int maxCellWidth, String expectedLabel, String actualLabel) {
+    List<String> headers = Arrays.asList("PATH", "TYPE", expectedLabel, actualLabel);
 
     List<List<String>> rows = new ArrayList<>();
 
@@ -209,7 +230,7 @@ public final class ComparisonResult {
     return "JSON differs (" + differences.size() + " differences):";
   }
 
-  private String formatGrouped(int maxCellWidth) {
+  private String formatGrouped(int maxCellWidth, String expectedLabel, String actualLabel) {
     Map<DifferenceType, List<Difference>> grouped = new LinkedHashMap<>();
 
     for (Difference difference : differences) {
@@ -223,7 +244,7 @@ public final class ComparisonResult {
       group.add(difference);
     }
 
-    List<String> headers = Arrays.asList("TYPE", "PATH", "EXPECTED", "ACTUAL");
+    List<String> headers = Arrays.asList("TYPE", "PATH", expectedLabel, actualLabel);
 
     List<List<String>> rows = new ArrayList<>();
 
