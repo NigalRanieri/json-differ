@@ -4,20 +4,22 @@ const config = document.getElementById("config");
 
 const formatExpected = document.getElementById("formatExpected");
 const formatActual = document.getElementById("formatActual");
+const formatConfig = document.getElementById("formatConfig");
 
 const compareButton = document.getElementById("compare");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
-
 const expectedCard = document.getElementById("expectedCard");
 const actualCard = document.getElementById("actualCard");
+const configCard = document.getElementById("configCard");
 
 const expectedFile = document.getElementById("expectedFile");
 const actualFile = document.getElementById("actualFile");
+const configFile = document.getElementById("configFile");
 
 const loadExpected = document.getElementById("loadExpected");
 const loadActual = document.getElementById("loadActual");
-
+const loadConfig = document.getElementById("loadConfig");
 const clearExpected = document.getElementById("clearExpected");
 const clearActual = document.getElementById("clearActual");
 const clearConfig = document.getElementById("clearConfig");
@@ -27,7 +29,6 @@ const themeToggle = document.getElementById("themeToggle");
 const resetExample = document.getElementById("resetExample");
 
 const configInfoButton = document.getElementById("configInfoButton");
-
 const configInfoPopover = document.getElementById("configInfoPopover");
 
 const DEFAULT_EXPECTED = `{
@@ -46,7 +47,6 @@ const DEFAULT_EXPECTED = `{
     "timestamp": "2026-08-27T10:00:00Z"
   }
 }`;
-
 const DEFAULT_ACTUAL = `{
   "user": {
     "name": "Alice",
@@ -65,32 +65,40 @@ const DEFAULT_ACTUAL = `{
 
 const DEFAULT_CONFIG = "";
 
-const EXAMPLE_CONFIG = `comparison:
-  ignorePaths:
-    - $.metadata.requestId
-    - $.metadata.timestamp
-
-  arrayOrder:
-    ignoreAt:
-      - $.roles
-
-  nullAndMissing:
-    equalAt:
-      - $.user.nickname
-
-  numericTolerance:
-    paths:
-      $.user.score: 0.5
-
-  ignoreCase:
-    paths:
-      - $.user.email
-
-output:
-  format: grouped
-  columns:
-    maxCellWidth: 40
-`;
+const EXAMPLE_CONFIG = `{
+  "comparison": {
+    "ignorePaths": [
+      "$.metadata.requestId",
+      "$.metadata.timestamp"
+    ],
+    "arrayOrder": {
+      "ignoreAt": [
+        "$.roles"
+      ]
+    },
+    "nullAndMissing": {
+      "equalAt": [
+        "$.user.nickname"
+      ]
+    },
+    "numericTolerance": {
+      "paths": {
+        "$.user.score": 0.5
+      }
+    },
+    "ignoreCase": {
+      "paths": [
+        "$.user.email"
+      ]
+    }
+  },
+  "output": {
+    "format": "GROUPED",
+    "columns": {
+      "maxCellWidth": 40
+    }
+  }
+}`;
 
 function formatJson(textarea) {
     try {
@@ -107,7 +115,6 @@ function formatJson(textarea) {
 
 function applyTheme(theme) {
     document.documentElement.dataset.theme = theme;
-
     const dark = theme === "dark";
     themeToggle.textContent = dark ? "☀" : "☾";
     themeToggle.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
@@ -117,7 +124,6 @@ function applyTheme(theme) {
 const savedTheme = localStorage.getItem("json-differ-theme");
 
 applyTheme(savedTheme === "light" ? "light" : "dark");
-
 themeToggle.addEventListener("click", () => {
     const current = document.documentElement.dataset.theme;
     const next = current === "dark" ? "light" : "dark";
@@ -136,7 +142,6 @@ async function loadJsonFile(file, textarea) {
         result.classList.add("error");
         return;
     }
-
     try {
         textarea.value = await file.text();
         result.classList.remove("error");
@@ -152,7 +157,6 @@ function enableFileDrop(card, textarea) {
         event.preventDefault();
         card.classList.add("drag-over");
     });
-
     card.addEventListener("dragleave", () => {
         card.classList.remove("drag-over");
     });
@@ -171,7 +175,6 @@ function enableTabIndentation(textarea) {
         if (event.key !== "Tab") {
             return;
         }
-
         event.preventDefault();
 
         const start = textarea.selectionStart;
@@ -191,7 +194,6 @@ configInfoButton.addEventListener("click", (event) => {
     event.stopPropagation();
 
     const isOpen = !configInfoPopover.hidden;
-
     if (isOpen) {
         closeConfigInfo();
     } else {
@@ -222,12 +224,20 @@ formatActual.addEventListener("click", () => {
     formatJson(actual);
 });
 
+formatConfig.addEventListener("click", () => {
+    formatJson(config);
+});
+
 loadExpected.addEventListener("click", () => {
     expectedFile.click();
 });
 
 loadActual.addEventListener("click", () => {
     actualFile.click();
+});
+
+loadConfig.addEventListener("click", () => {
+    configFile.click();
 });
 
 expectedFile.addEventListener("change", async () => {
@@ -240,8 +250,14 @@ actualFile.addEventListener("change", async () => {
     actualFile.value = "";
 });
 
+configFile.addEventListener("change", async () => {
+    await loadJsonFile(configFile.files[0], config);
+    configFile.value = "";
+});
+
 enableFileDrop(expectedCard, expected);
 enableFileDrop(actualCard, actual);
+enableFileDrop(configCard, config);
 
 resetExample.addEventListener("click", () => {
     expected.value = DEFAULT_EXPECTED;
@@ -250,7 +266,6 @@ resetExample.addEventListener("click", () => {
 
     result.classList.remove("error");
     result.textContent = "Waiting for comparison...";
-
     if (!compareButton.disabled) {
         status.textContent = "Ready.";
     }
@@ -274,9 +289,8 @@ clearConfig.addEventListener("click", () => {
 loadConfigExample.addEventListener("click", () => {
     config.value = EXAMPLE_CONFIG;
     config.focus();
-
     result.classList.remove("error");
-    status.textContent = "Example YAML loaded.";
+    status.textContent = "Example JSON config loaded.";
 });
 
 enableTabIndentation(expected);
@@ -295,7 +309,6 @@ try {
     const jarPath = "/app" + jarUrl.pathname;
 
     const lib = await cheerpjRunLibrary(jarPath);
-
     const DemoBridge = await lib.io.github.nigalranieri.jsondiffer.demo.DemoBridge;
 
     const JavaString = await lib.java.lang.String;
@@ -311,9 +324,7 @@ try {
             compareButton.disabled = true;
 
             const expectedJava = await new JavaString(expected.value);
-
             const actualJava = await new JavaString(actual.value);
-
             const configJava = await new JavaString(config.value);
 
             const comparison = await DemoBridge.compare(expectedJava, actualJava, configJava);
@@ -321,7 +332,6 @@ try {
             const output = await comparison.toString();
 
             result.textContent = output;
-
             if (output.startsWith("ERROR:")) {
                 result.classList.add("error");
                 status.textContent = "Comparison failed.";
@@ -339,7 +349,6 @@ try {
     });
 } catch (error) {
     status.textContent = "Failed to initialize browser Java runtime.";
-
     result.textContent = "The json-differ runtime could not be loaded. Check the developer console.";
 
     result.classList.add("error");
