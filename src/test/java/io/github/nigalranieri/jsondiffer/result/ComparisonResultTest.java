@@ -519,4 +519,29 @@ class ComparisonResultTest {
 
     assertThrows(NullPointerException.class, () -> result.filterValueMismatches(null));
   }
+
+  @Test
+  void rejectsNullDifferenceTypesArray() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":1}", "{\"value\":2}");
+
+    assertThrows(NullPointerException.class, () -> result.filter((DifferenceType[]) null));
+  }
+
+  @Test
+  void rejectsNullDifferenceType() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":1}", "{\"value\":2}");
+
+    assertThrows(
+        NullPointerException.class, () -> result.filter(DifferenceType.VALUE_MISMATCH, null));
+  }
+
+  @Test
+  void filteringWithNoTypesReturnsEmptyResult() {
+    ComparisonResult result = JsonCompare.compare("{\"value\":1}", "{\"value\":2}");
+
+    ComparisonResult filtered = result.filter();
+
+    assertTrue(filtered.isEqual());
+    assertTrue(filtered.getDifferences().isEmpty());
+  }
 }

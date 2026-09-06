@@ -8,10 +8,13 @@ import io.github.nigalranieri.jsondiffer.result.ComparisonResult;
 import java.nio.file.Path;
 
 /**
- * Reusable JSON comparator created from a configured {@link JsonCompareBuilder}.
+ * Reusable JSON comparator containing a fixed set of comparison rules.
  *
- * <p>A comparator captures the builder configuration at the moment it is built and can be reused
- * across multiple comparisons.
+ * <p>A comparator can be created from a {@link JsonCompareBuilder} or from the comparison settings
+ * of a configuration. Result filtering and output formatting are not part of the comparator and
+ * must be applied separately when needed.
+ *
+ * <p>Instances are immutable and can be reused for multiple comparisons.
  */
 public final class JsonComparator {
 

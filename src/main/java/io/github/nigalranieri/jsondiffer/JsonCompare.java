@@ -68,7 +68,8 @@ public final class JsonCompare {
    * @param actual the actual JSON document
    * @param config the configuration to apply
    * @return the filtered comparison result
-   * @throws NullPointerException if {@code config} is {@code null}
+   * @throws NullPointerException if {@code expected}, {@code actual}, or {@code config} is {@code
+   *     null}
    */
   public static ComparisonResult compare(String expected, String actual, JsonDifferConfig config) {
 
@@ -103,13 +104,13 @@ public final class JsonCompare {
   }
 
   /**
-   * Creates a configured comparator from the supplied configuration.
+   * Creates a reusable comparator from the comparison settings in the supplied configuration.
    *
-   * <p>The configuration is translated through the same builder API used for programmatic
-   * configuration, preserving the same validation and comparison semantics.
+   * <p>Only comparison settings are applied. Result filtering and output formatting are not part of
+   * the returned comparator.
    *
-   * @param config the comparison configuration
-   * @return a reusable configured comparator
+   * @param config the configuration whose comparison settings should be used
+   * @return a reusable comparator configured with the supplied comparison settings
    * @throws NullPointerException if {@code config} is {@code null}
    */
   public static JsonComparator comparatorFromConfig(JsonDifferConfig config) {
@@ -183,12 +184,16 @@ public final class JsonCompare {
   }
 
   /**
-   * Creates a configured comparator by loading configuration from the supplied YAML file.
+   * Creates a reusable comparator from the comparison settings in the supplied configuration file.
    *
-   * @param configPath the path to the YAML configuration file
-   * @return a reusable configured comparator
+   * <p>The configuration format is selected by {@link JsonDifferConfigLoader#load(Path)}. Only
+   * comparison settings are applied. Result filtering and output formatting are not part of the
+   * returned comparator.
+   *
+   * @param configPath the path to the configuration file
+   * @return a reusable comparator configured with the file's comparison settings
    * @throws NullPointerException if {@code configPath} is {@code null}
-   * @throws IOException if the configuration file cannot be read or parsed
+   * @throws IOException if the configuration file cannot be read
    */
   public static JsonComparator comparatorFromConfig(Path configPath) throws IOException {
     Objects.requireNonNull(configPath, "configPath");

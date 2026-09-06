@@ -152,13 +152,20 @@ public final class ComparisonResult {
   /**
    * Returns a new comparison result containing only differences of the specified types.
    *
-   * <p>The original comparison result is not modified, and the relative order of matching
-   * differences is preserved.
+   * <p>The original result is not modified, and retained differences preserve their original order.
+   * If no types are supplied, the returned result contains no differences.
    *
    * @param types the difference types to retain
-   * @return a new comparison result containing only differences of the specified types
+   * @return a new filtered comparison result
+   * @throws NullPointerException if {@code types} is {@code null} or contains a {@code null}
+   *     element
    */
   public ComparisonResult filter(DifferenceType... types) {
+    Objects.requireNonNull(types, "types");
+
+    for (DifferenceType type : types) {
+      Objects.requireNonNull(type, "type");
+    }
     List<DifferenceType> includedTypes = Arrays.asList(types);
 
     List<Difference> filtered =
@@ -170,15 +177,19 @@ public final class ComparisonResult {
   }
 
   /**
-   * Returns a new comparison result containing only value mismatches whose expected or actual
-   * string value matches the supplied pattern.
+   * Returns a new comparison result containing only {@link DifferenceType#VALUE_MISMATCH
+   * VALUE_MISMATCH} differences whose expected or actual string value matches the supplied regular
+   * expression.
    *
-   * <p>Only differences of type {@link DifferenceType#VALUE_MISMATCH} with string values are
-   * considered. The original comparison result is not modified, and the relative order of matching
-   * differences is preserved.
+   * <p>The pattern is matched against the complete string value using {@link
+   * java.util.regex.Matcher#matches()} semantics. Non-string value mismatches are not retained.
+   * Other difference types, including {@link DifferenceType#CASE_MISMATCH CASE_MISMATCH}, are not
+   * included.
    *
-   * @param pattern the pattern used to match expected and actual string values
-   * @return a new comparison result containing matching value mismatches
+   * <p>The original result is not modified, and retained differences preserve their original order.
+   *
+   * @param pattern the regular expression used to match expected or actual string values
+   * @return a new filtered comparison result
    * @throws NullPointerException if {@code pattern} is {@code null}
    */
   public ComparisonResult filterValueMismatches(Pattern pattern) {
