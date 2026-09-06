@@ -239,4 +239,92 @@ class IncludedPathComparisonTest {
 
     assertTrue(result.isEqual());
   }
+
+  @Test
+  void appliesIgnoreCaseInsideIncludedPath() {
+    ComparisonResult result =
+            JsonCompare.builder()
+                    .includePath("$.user")
+                    .ignoreCase("$.user.status")
+                    .build()
+                    .compare(
+                            "{\"user\":{\"status\":\"ACTIVE\"},\"version\":1}",
+                            "{\"user\":{\"status\":\"active\"},\"version\":2}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void pathSpecificRuleOutsideIncludedPathHasNoEffect() {
+    ComparisonResult result =
+            JsonCompare.builder()
+                    .includePath("$.user")
+                    .ignoreCase("$.metadata.status")
+                    .build()
+                    .compare(
+                            "{\"user\":{\"status\":\"ACTIVE\"},\"metadata\":{\"status\":\"ACTIVE\"}}",
+                            "{\"user\":{\"status\":\"active\"},\"metadata\":{\"status\":\"active\"}}");
+
+    assertEquals(1, result.getDifferences().size());
+    assertEquals("$.user.status", result.getDifferences().get(0).getPath());
+    assertEquals(
+            DifferenceType.CASE_MISMATCH,
+            result.getDifferences().get(0).getType());
+  }
+
+  @Test
+  void appliesNumericToleranceInsideIncludedPath() {
+    ComparisonResult result =
+            JsonCompare.builder()
+                    .includePath("$.user")
+                    .numericTolerance("$.user.score", 0.1)
+                    .build()
+                    .compare(
+                            "{\"user\":{\"score\":10.0},\"version\":1}",
+                            "{\"user\":{\"score\":10.05},\"version\":2}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void appliesNullAndMissingEquivalenceInsideIncludedPath() {
+    ComparisonResult result =
+            JsonCompare.builder()
+                    .includePath("$.user")
+                    .treatNullAndMissingAsEqual("$.user.nickname")
+                    .build()
+                    .compare(
+                            "{\"user\":{\"nickname\":null},\"version\":1}",
+                            "{\"user\":{},\"version\":2}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void comparesIncludedDescendantsInsideUnorderedArray() {
+    ComparisonResult result =
+            JsonCompare.builder()
+                    .includePath("$.users[*].name")
+                    .ignoreArrayOrder("$.users")
+                    .build()
+                    .compare(
+                            "{\"users\":[{\"name\":\"Alice\",\"id\":1},{\"name\":\"Bob\",\"id\":2}]}",
+                            "{\"users\":[{\"name\":\"Bob\",\"id\":999},{\"name\":\"Alice\",\"id\":888}]}");
+
+    assertTrue(result.isEqual());
+  }
+
+  @Test
+  void reportsIncludedDifferenceInsideUnorderedArray() {
+    ComparisonResult result =
+            JsonCompare.builder()
+                    .includePath("$.users[*].name")
+                    .ignoreArrayOrder("$.users")
+                    .build()
+                    .compare(
+                            "{\"users\":[{\"name\":\"Alice\"},{\"name\":\"Bob\"}]}",
+                            "{\"users\":[{\"name\":\"Alice\"},{\"name\":\"Charlie\"}]}");
+
+    assertEquals(1, result.getDifferences().size());
+  }
 }
