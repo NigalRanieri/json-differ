@@ -33,7 +33,7 @@ public class ConfigComparisonTest {
             + "    paths:\n"
             + "      - $.users[*].email\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     ComparisonResult result =
         JsonCompare.fromConfig(config)
@@ -54,7 +54,7 @@ public class ConfigComparisonTest {
   void appliesYamlOutputConfiguration() throws IOException {
     String yaml = "output:\n" + "  format: grouped\n" + "  columns:\n" + "    maxCellWidth: 10\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     ComparisonResult result =
         JsonCompare.fromConfig(config)
@@ -94,7 +94,7 @@ public class ConfigComparisonTest {
   void rejectsNullPathEntryFromConfiguration() throws IOException {
     String yaml = "comparison:\n" + "  ignorePaths:\n" + "    - null\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertThrows(NullPointerException.class, () -> JsonCompare.fromConfig(config));
   }
@@ -103,7 +103,7 @@ public class ConfigComparisonTest {
   void rejectsInvalidPathFromConfiguration() throws IOException {
     String yaml = "comparison:\n" + "  ignoreCase:\n" + "    paths:\n" + "      - users[*].email\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
   }
@@ -112,7 +112,7 @@ public class ConfigComparisonTest {
   void rejectsNegativeNumericToleranceFromConfiguration() throws IOException {
     String yaml = "comparison:\n" + "  numericTolerance:\n" + "    global: -0.1\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
   }
@@ -121,7 +121,7 @@ public class ConfigComparisonTest {
   void invalidOutputConfigurationCannotBeLoadedForComparison() {
     String yaml = "output:\n" + "  columns:\n" + "    maxCellWidth: 0\n";
 
-    assertThrows(IOException.class, () -> JsonDifferConfigLoader.load(yaml));
+    assertThrows(IOException.class, () -> JsonDifferConfigLoader.loadYaml(yaml));
   }
 
   @Test
@@ -132,7 +132,7 @@ public class ConfigComparisonTest {
 
     String actual = "{\"user\":{\"name\":\"Bob\",\"age\":31},\"version\":2}";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     ComparisonResult result = JsonCompare.fromConfig(config).compare(expected, actual);
 
@@ -144,7 +144,7 @@ public class ConfigComparisonTest {
   void appliesIncludedPathsFromYamlConfiguration() throws IOException {
     String yaml = "comparison:\n" + "  includePaths:\n" + "    - $.user.name\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     ComparisonResult result =
         JsonCompare.fromConfig(config)
@@ -160,7 +160,7 @@ public class ConfigComparisonTest {
   void rejectsNullIncludedPathFromConfiguration() throws IOException {
     String yaml = "comparison:\n" + "  includePaths:\n" + "    - null\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertThrows(NullPointerException.class, () -> JsonCompare.fromConfig(config));
   }
@@ -169,7 +169,7 @@ public class ConfigComparisonTest {
   void rejectsInvalidIncludedPathFromConfiguration() throws IOException {
     String yaml = "comparison:\n" + "  includePaths:\n" + "    - user.name\n";
 
-    JsonDifferConfig config = JsonDifferConfigLoader.load(yaml);
+    JsonDifferConfig config = JsonDifferConfigLoader.loadYaml(yaml);
 
     assertThrows(IllegalArgumentException.class, () -> JsonCompare.fromConfig(config));
   }

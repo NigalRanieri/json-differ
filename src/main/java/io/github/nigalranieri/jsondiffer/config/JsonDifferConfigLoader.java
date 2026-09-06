@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -16,7 +17,8 @@ import java.util.Objects;
  */
 public final class JsonDifferConfigLoader {
 
-  private static final ObjectMapper YAML_MAPPER = createMapper();
+  private static final ObjectMapper YAML_MAPPER = createYamlMapper();
+  private static final ObjectMapper JSON_MAPPER = createJsonMapper();
 
   private JsonDifferConfigLoader() {}
 
@@ -30,7 +32,7 @@ public final class JsonDifferConfigLoader {
    * @throws NullPointerException if {@code yaml} is {@code null}
    * @throws IOException if the YAML cannot be parsed or mapped to the configuration model
    */
-  public static JsonDifferConfig load(String yaml) throws IOException {
+  public static JsonDifferConfig loadYaml(String yaml) throws IOException {
     Objects.requireNonNull(yaml, "yaml");
 
     if (yaml.trim().isEmpty()) {
@@ -43,9 +45,11 @@ public final class JsonDifferConfigLoader {
   }
 
   /**
-   * Loads configuration from a YAML file.
+   * Loads configuration from a YAML or JSON file.
    *
-   * @param path the path to the YAML configuration file
+   * <p>Files ending in {@code .json} are parsed as JSON. All other files are parsed as YAML.
+   *
+   * @param path the path to the configuration file
    * @return the parsed configuration
    * @throws NullPointerException if {@code path} is {@code null}
    * @throws IOException if the file cannot be read or its contents cannot be parsed or mapped
@@ -53,13 +57,46 @@ public final class JsonDifferConfigLoader {
   public static JsonDifferConfig load(Path path) throws IOException {
     Objects.requireNonNull(path, "path");
 
-    JsonDifferConfig config = YAML_MAPPER.readValue(path.toFile(), JsonDifferConfig.class);
+    ObjectMapper mapper =
+        path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".json")
+            ? JSON_MAPPER
+            : YAML_MAPPER;
+
+    JsonDifferConfig config = mapper.readValue(path.toFile(), JsonDifferConfig.class);
 
     return config == null ? new JsonDifferConfig() : config;
   }
 
-  private static ObjectMapper createMapper() {
+  /**
+   * Loads configuration from JSON text.
+   *
+   * <p>Blank JSON is treated as an empty configuration and therefore uses all default settings.
+   *
+   * @param json the JSON configuration
+   * @return the parsed configuration
+   * @throws NullPointerException if {@code json} is {@code null}
+   * @throws IOException if the JSON cannot be parsed or mapped to the configuration model
+   */
+  public static JsonDifferConfig loadJson(String json) throws IOException {
+    Objects.requireNonNull(json, "json");
+
+    if (json.trim().isEmpty()) {
+      return new JsonDifferConfig();
+    }
+
+    JsonDifferConfig config = JSON_MAPPER.readValue(json, JsonDifferConfig.class);
+
+    return config == null ? new JsonDifferConfig() : config;
+  }
+
+  private static ObjectMapper createYamlMapper() {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true);
+    return mapper;
+  }
+
+  private static ObjectMapper createJsonMapper() {
+    ObjectMapper mapper = new ObjectMapper();
     mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true);
     return mapper;
   }

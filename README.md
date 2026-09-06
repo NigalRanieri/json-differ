@@ -368,18 +368,18 @@ import io.github.nigalranieri.jsondiffer.config.JsonDifferConfig;
 import io.github.nigalranieri.jsondiffer.config.JsonDifferConfigLoader;
 
 String yaml =
-    "comparison:\n"
-        + "  ignoreCase:\n"
-        + "    globally: true\n";
+        "comparison:\n"
+                + "  ignoreCase:\n"
+                + "    globally: true\n";
 
 JsonDifferConfig config =
-    JsonDifferConfigLoader.load(yaml);
+        JsonDifferConfigLoader.loadYaml(yaml);
 
 JsonComparator comparator =
-    JsonCompare.fromConfig(config);
+        JsonCompare.fromConfig(config);
 
 ComparisonResult result =
-    comparator.compare(expected, actual);
+        comparator.compare(expected, actual);
 ```
 
 The same configuration object also contains output settings:
