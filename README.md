@@ -89,7 +89,7 @@ comparison, result filtering, and output configuration through JSON.
 <dependency>
     <groupId>io.github.nigalranieri</groupId>
     <artifactId>json-differ</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
@@ -99,7 +99,7 @@ comparison, result filtering, and output configuration through JSON.
 
 ``` groovy
 dependencies {
-    implementation 'io.github.nigalranieri:json-differ:1.0.0'
+    implementation 'io.github.nigalranieri:json-differ:1.0.1'
 }
 ```
 
@@ -107,7 +107,7 @@ dependencies {
 
 ``` kotlin
 dependencies {
-    implementation("io.github.nigalranieri:json-differ:1.0.0")
+    implementation("io.github.nigalranieri:json-differ:1.0.1")
 }
 ```
 
@@ -1026,8 +1026,10 @@ reading a JSON file are reported with `JsonReadException`.
 
 -   Java 8 or later
 
-Jackson is used internally for JSON parsing and configuration loading
-but is not exposed through the public comparison or result APIs.
+Jackson and SnakeYAML are used internally for JSON and YAML processing.
+Their runtime dependencies are bundled and isolated within `json-differ`,
+so they do not impose Jackson or SnakeYAML versions on consuming applications.
+These libraries are not exposed through the public API.
 
 ## License
 
